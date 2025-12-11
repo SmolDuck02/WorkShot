@@ -1,0 +1,47 @@
+<svg width="400" height="400" viewBox="0 0 400 400" fill="none" xmlns="http://www.w3.org/2000/svg">
+            
+            <defs>
+                <!-- Mask to hide body lines behind the lens -->
+                <mask id="lens-mask">
+                    <rect x="0" y="0" width="400" height="400" fill="white"/>
+                    <!-- The black circle hides the area behind the lens -->
+                    <circle cx="200" cy="190" r="108" fill="black"/>
+                </mask>
+            </defs>
+
+            <!-- 1. Top Button (Shutter Release) -->
+            <rect x="90" y="70" width="40" height="20" rx="4" stroke="#5b8def" stroke-width="6"/>
+
+            <!-- Group: Camera Body Elements (Masked) -->
+            <g mask="url(#lens-mask)">
+                <!-- 2. Main Camera Body -->
+                <rect x="50" y="90" width="300" height="200" rx="30" stroke="#5b8def" stroke-width="6"/>
+                
+                <!-- Body Detail: Horizontal Line on Left -->
+                <path d="M50 160 L100 160" stroke="#5b8def" stroke-width="6" stroke-linecap="round"/>
+                <path d="M50 220 L100 220" stroke="#5b8def" stroke-width="6" stroke-linecap="round"/>
+
+                <!-- Body Detail: Small Circle on Top Right -->
+                <circle cx="320" cy="120" r="10" stroke="#5b8def" stroke-width="6"/>
+            </g>
+
+            <!-- 3. Main Lens Container -->
+            <!-- Fill removed, transparency handled by mask above -->
+            <circle cx="200" cy="190" r="100" stroke="#5b8def" stroke-width="6"/>
+
+            <!-- 4. Inner Ring (The Gear/Shutter Boundary) -->
+            <circle cx="200" cy="190" r="80" stroke="#5b8def" stroke-width="6"/>
+
+            <!-- 5. RIGHT SIDE: Gear & Clock Mechanics -->
+    
+
+            <!-- Clock Hand -->
+            <path d="M200 190 L200 130" stroke="#5b8def" stroke-width="6" stroke-linecap="round"/>
+            <circle cx="200" cy="190" r="8" fill="#5b8def"/>
+
+            <!-- 6. LEFT SIDE: Shutter Aperture Blades -->
+            <!-- Center Connector -->
+            <path d="M165 150 L200 190" stroke="#5b8def" stroke-width="6" stroke-linecap="round"/>
+
+        </svg>
+
