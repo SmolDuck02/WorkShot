@@ -7,7 +7,7 @@
 [![Windows](https://img.shields.io/badge/windows-10%2F11-5b8def?style=for-the-badge&logo=windows&logoColor=white)](https://www.microsoft.com/windows)
 [![License](https://img.shields.io/badge/license-MIT-5b8def?style=for-the-badge)](LICENSE)
 
-![WorkShot Dashboard Preview](https://via.placeholder.com/1200x600/0c0c0f/5b8def?text=WorkShot+Dashboard)
+<!-- ![WorkShot Dashboard Preview](https://via.placeholder.com/1200x600/0c0c0f/5b8def?text=WorkShot+Dashboard) -->
 
 ---
 
