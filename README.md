@@ -1,3 +1,4 @@
+# This is VibeCoded
 # ⚡ WorkShot
 
 > **Your Digital Activity Guardian** - A next-generation activity monitoring system with a sleek, futuristic interface that transforms how you track and understand your computer usage.
@@ -13,7 +14,9 @@
 
 ## 🌟 Overview
 
-**WorkShot** is a powerful Windows activity tracker that captures every moment of your digital workflow. With **real-time monitoring**, **multi-monitor support**, and a **stunning sci-fi dashboard**, WorkShot gives you unprecedented insight into how you spend your time.
+**WorkShot** is a powerful **local desktop application** for Windows that captures every moment of your digital workflow. With **real-time monitoring**, **multi-monitor support**, and a **stunning sci-fi dashboard**, WorkShot gives you unprecedented insight into how you spend your time.
+
+> 🔒 **Privacy-First Design**: WorkShot runs entirely on your machine. All tracking data stays local - no cloud servers, no data uploads, no subscriptions. Your activity data is yours alone.
 
 Unlike basic time trackers, WorkShot provides:
 - 🎯 **Pixel-perfect accuracy** - Tracks down to the second
