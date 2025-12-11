@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- Primary Meta Tags -->
+    <title>WorkShot - Real-Time Activity Tracker for Windows | Monitor Your Digital Workflow</title>
+    <meta name="title" content="WorkShot - Real-Time Activity Tracker for Windows">
+    <meta name="description" content="Track your computer usage with WorkShot's beautiful futuristic dashboard. Real-time monitoring, multi-monitor support, idle detection, and flexible data exports. Free & open-source.">
+    <meta name="keywords" content="activity tracker, time tracker, windows monitoring, productivity tool, screen time tracker, app usage tracker, work tracker, time management, real-time monitoring, multi-monitor tracking">
+    <meta name="author" content="WorkShot">
+    <meta name="robots" content="index, follow">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://github.com/yourusername/workshot">
+    <meta property="og:title" content="WorkShot - Real-Time Activity Tracker for Windows">
+    <meta property="og:description" content="Track your computer usage with WorkShot's beautiful futuristic dashboard. Real-time monitoring, multi-monitor support, and flexible data exports.">
+    <meta property="og:image" content="https://via.placeholder.com/1200x630/0c0c0f/5b8def?text=WorkShot+Dashboard">
+    
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://github.com/yourusername/workshot">
+    <meta property="twitter:title" content="WorkShot - Real-Time Activity Tracker for Windows">
+    <meta property="twitter:description" content="Track your computer usage with WorkShot's beautiful futuristic dashboard. Real-time monitoring, multi-monitor support, and flexible data exports.">
+    <meta property="twitter:image" content="https://via.placeholder.com/1200x630/0c0c0f/5b8def?text=WorkShot+Dashboard">
+    
+    <!-- Theme Color -->
+    <meta name="theme-color" content="#0c0c0f">
+    <meta name="msapplication-TileColor" content="#5b8def">
+    
+    <!-- Favicon -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+    
+    <!-- Stylesheet -->
+    <link rel="stylesheet" href="/static/style.css">
+    
+    <!-- Structured Data / Schema.org -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "WorkShot",
+      "applicationCategory": "ProductivityApplication",
+      "operatingSystem": "Windows 10, Windows 11",
+      "description": "Real-time activity tracker for Windows with beautiful futuristic dashboard, multi-monitor support, idle detection, and flexible data exports.",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      },
+      "author": {
+        "@type": "Organization",
+        "name": "WorkShot"
+      }
+    }
+    </script>
+</head>
+<body>
+    <!-- Decorative flowing light path -->
+    <div class="light-path light-path-bottom"></div>
+    
+    <div class="dashboard">
+        <!-- Header -->
+        <header class="header">
+            <div class="logo">
+                <div class="logo-icon">⚡</div>
+                <h1>WorkShot</h1>
+            </div>
+            <div class="header-right">
+                <button class="export-btn export-btn-primary" onclick="openExportModal()" title="Export Data">
+                    Export
+                </button>
+                <div class="status-indicator">
+                    <div class="status-dot"></div>
+                    <span class="status-text">Tracking Active</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Live Status Card -->
+        <div class="card live-status">
+            <div class="card-header">
+                <div class="status-dot-live"></div>
+                <h2 class="card-title">Live Activity</h2>
+            </div>
+            <div class="current-app">
+                <div class="app-icon-large" id="current-app-icon"></div>
+                <div class="app-details">
+                    <h2 id="current-app-name">Loading...</h2>
+                    <p class="window-title" id="current-window-title">Initializing tracker...</p>
+                </div>
+                <div class="monitor-badge" id="current-monitor">Monitor 1</div>
+            </div>
+            <div class="live-timer">
+                <div class="timer-display" id="current-timer">00:00:00</div>
+                <div class="timer-label">Session Duration</div>
+            </div>
+        </div>
+
+        <!-- Main Grid -->
+        <div class="grid-main">
+            <!-- Today's Apps -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Today's Usage</h2>
+                </div>
+                
+                <!-- Quick Stats -->
+                <div class="grid-stats">
+                    <div class="stat-card">
+                        <div class="stat-value" id="total-time">0s</div>
+                        <div class="stat-label">Total Time</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="total-apps">0</div>
+                        <div class="stat-label">Apps Used</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="total-sessions">0</div>
+                        <div class="stat-label">Sessions</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">2</div>
+                        <div class="stat-label">Monitors</div>
+                    </div>
+                </div>
+                
+                <!-- App Breakdown -->
+                <div class="app-list" id="app-list">
+                    <div class="empty-state">
+                        <p>Loading activity data...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column -->
+            <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+                <!-- Monitor Split -->
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">Monitor Usage</h2>
+                    </div>
+                    <div class="monitor-grid">
+                        <div class="monitor-card monitor-1">
+                            <div class="monitor-number">Monitor 1</div>
+                            <div class="monitor-time" id="monitor-1-time">0s</div>
+                        </div>
+                        <div class="monitor-card monitor-2">
+                            <div class="monitor-number">Monitor 2</div>
+                            <div class="monitor-time" id="monitor-2-time">0s</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Session Log -->
+                <div class="card" style="flex: 1;">
+                    <div class="card-header">
+                        <h2 class="card-title">Session Log</h2>
+                    </div>
+                    <div class="session-log" id="session-log">
+                        <div class="empty-state">
+                            <p>Loading sessions...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Export Modal -->
+    <div class="modal-overlay" id="export-modal" onclick="closeExportModal(event)">
+        <div class="modal" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <h2>Export Data</h2>
+                <button class="modal-close" onclick="closeExportModal()">&times;</button>
+            </div>
+            
+            <div class="modal-body">
+                <!-- Quick Presets -->
+                <div class="export-section">
+                    <label class="export-label">Quick Select</label>
+                    <div class="preset-buttons">
+                        <button class="preset-btn" onclick="setPreset('today')">Today</button>
+                        <button class="preset-btn" onclick="setPreset('yesterday')">Yesterday</button>
+                        <button class="preset-btn" onclick="setPreset('week')">This Week</button>
+                        <button class="preset-btn" onclick="setPreset('month')">This Month</button>
+                        <button class="preset-btn" onclick="setPreset('all')">All Time</button>
+                    </div>
+                </div>
+                
+                <!-- Date Range -->
+                <div class="export-section">
+                    <label class="export-label">Custom Date Range</label>
+                    <div class="date-inputs">
+                        <div class="date-field">
+                            <label>From</label>
+                            <input type="date" id="export-start-date" onchange="updatePresetSelection()">
+                        </div>
+                        <div class="date-field">
+                            <label>To</label>
+                            <input type="date" id="export-end-date" onchange="updatePresetSelection()">
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Selected Range Display -->
+                <div class="export-section">
+                    <div class="selected-range" id="selected-range">
+                        Exporting: <strong>All Time</strong>
+                    </div>
+                </div>
+                
+                <!-- Export Format Buttons -->
+                <div class="export-section">
+                    <label class="export-label">Export Format</label>
+                    <div class="export-format-buttons">
+                        <button class="format-btn" onclick="exportWithDates('csv')">
+                            <span class="format-icon">📄</span>
+                            <span class="format-name">CSV</span>
+                            <span class="format-desc">Spreadsheet</span>
+                        </button>
+                        <button class="format-btn" onclick="exportWithDates('json')">
+                            <span class="format-icon">{ }</span>
+                            <span class="format-name">JSON</span>
+                            <span class="format-desc">Structured Data</span>
+                        </button>
+                        <button class="format-btn format-btn-highlight" onclick="exportWithDates('html')">
+                            <span class="format-icon">📊</span>
+                            <span class="format-name">Report</span>
+                            <span class="format-desc">Visual HTML</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/script.js"></script>
+</body>
+</html>
+
+
