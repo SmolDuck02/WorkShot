@@ -60,6 +60,12 @@ Unlike basic time trackers, WorkShot provides:
 - **Responsive layout** - Works on desktop, tablet, and mobile
 - **App icons** - Real logos fetched from CDN (100+ apps supported)
 
+### 🔄 Smart Instance Management
+- **Auto-restart** - Running WorkShot again automatically stops the previous instance
+- **Clean shutdown** - Graceful termination saves all data before exiting
+- **No conflicts** - Port and database locking handled automatically
+- **Global command** - Run `workshot` from anywhere in your terminal
+
 ---
 
 ## 🚀 Quick Start
@@ -82,9 +88,45 @@ pip install -r requirements.txt
 
 ### Running WorkShot
 
+**Option 1: Direct Python**
 ```bash
 python main.py
 ```
+
+**Option 2: Global Command (Recommended)**
+
+For easy access from anywhere, set up the global `workshot` command:
+
+1. **Edit the launcher script** - Open `workshot.bat` and update the path:
+   ```batch
+   cd /d "C:\Users\YOUR_USERNAME\WorkShot\WorkShot"
+   ```
+   Replace `YOUR_USERNAME` with your actual Windows username.
+
+2. **Set up global access** (PowerShell as Administrator):
+   ```powershell
+   # Create a bin directory for user scripts
+   mkdir C:\Users\YOUR_USERNAME\bin
+   
+   # Copy the launcher script
+   copy workshot.bat C:\Users\YOUR_USERNAME\bin\
+   
+   # Add to PATH (run once)
+   [Environment]::SetEnvironmentVariable("Path", [Environment]::GetEnvironmentVariable("Path", "User") + ";C:\Users\YOUR_USERNAME\bin", "User")
+   ```
+
+3. **Restart your terminal** to apply PATH changes
+
+4. **Run from anywhere**:
+   ```bash
+   workshot
+   ```
+
+**Benefits:**
+- ✅ Run from any directory
+- ✅ Automatically stops previous instances
+- ✅ Clean Ctrl+C shutdown
+- ✅ No port conflicts or database locks
 
 The dashboard will automatically open in your default browser at:
 **http://127.0.0.1:8787**
@@ -93,8 +135,11 @@ The dashboard will automatically open in your default browser at:
 
 ```bash
 python main.py --no-browser  # Start without opening browser
-python main.py --port 8080   # Use custom port (future)
 ```
+
+### Stopping WorkShot
+
+Simply press **Ctrl+C** in the terminal to stop tracking and shut down gracefully.
 
 ---
 

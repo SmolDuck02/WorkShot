@@ -266,7 +266,7 @@ class ActivityMonitor:
         self.running = True
         self._thread = threading.Thread(target=self._monitoring_loop, daemon=True)
         self._thread.start()
-        print("🔍 Activity monitoring started...")
+        print("[+] Activity monitoring started...")
     
     def stop(self):
         """Stop monitoring."""
@@ -279,7 +279,7 @@ class ActivityMonitor:
         if self._thread:
             self._thread.join(timeout=2.0)
         
-        print("⏹️ Activity monitoring stopped.")
+        print("[*] Activity monitoring stopped.")
     
     def get_current_activity(self) -> Optional[dict]:
         """Get current activity as dictionary."""
