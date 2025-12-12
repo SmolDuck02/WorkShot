@@ -10,37 +10,38 @@
             </defs>
 
             <!-- 1. Top Button (Shutter Release) -->
-            <rect x="90" y="70" width="40" height="20" rx="4" stroke="#000000" stroke-width="15"/>
+            <rect x="90" y="70" width="40" height="20" rx="4" stroke="#5b8def" stroke-width="15"/>
 
             <!-- Group: Camera Body Elements (Masked) -->
             <g mask="url(#lens-mask)">
                 <!-- 2. Main Camera Body -->
-                <rect x="50" y="90" width="300" height="200" rx="30" stroke="#000000" stroke-width="15"/>
+                <rect x="50" y="90" width="300" height="200" rx="30" stroke="#5b8def" stroke-width="15"/>
                 
                 <!-- Body Detail: Horizontal Line on Left -->
-                <path d="M50 160 L100 160" stroke="#000000" stroke-width="15" stroke-linecap="round"/>
-                <path d="M50 220 L100 220" stroke="#000000" stroke-width="15" stroke-linecap="round"/>
+                <path d="M50 160 L100 160" stroke="#5b8def" stroke-width="15" stroke-linecap="round"/>
+                <path d="M50 220 L100 220" stroke="#5b8def" stroke-width="15" stroke-linecap="round"/>
 
                 <!-- Body Detail: Small Circle on Top Right -->
-                <circle cx="320" cy="120" r="10" stroke="#000000" stroke-width="15"/>
+                <circle cx="320" cy="120" r="10" stroke="#5b8def" stroke-width="15"/>
             </g>
 
             <!-- 3. Main Lens Container -->
             <!-- Fill removed, transparency handled by mask above -->
-            <circle cx="200" cy="190" r="100" stroke="#000000" stroke-width="15"/>
+            <circle cx="200" cy="190" r="100" stroke="#5b8def" stroke-width="15"/>
 
             <!-- 4. Inner Ring (The Gear/Shutter Boundary) -->
-            <circle cx="200" cy="190" r="80" stroke="#000000" stroke-width="15"/>
+            <circle cx="200" cy="190" r="80" stroke="#5b8def" stroke-width="15"/>
 
             <!-- 5. RIGHT SIDE: Gear & Clock Mechanics -->
     
 
             <!-- Clock Hand -->
-            <path d="M200 190 L200 130" stroke="#000000" stroke-width="15" stroke-linecap="round"/>
-            <circle cx="200" cy="190" r="16" fill="#000000"/>
+            <path d="M200 190 L200 130" stroke="#5b8def" stroke-width="15" stroke-linecap="round"/>
+            <circle cx="200" cy="190" r="16" fill="#5b8def"/>
 
             <!-- 6. LEFT SIDE: Shutter Aperture Blades -->
             <!-- Center Connector -->
-            <path d="M165 150 L200 190" stroke="#000000" stroke-width="15" stroke-linecap="round"/>
+            <path d="M165 150 L200 190" stroke="#5b8def" stroke-width="15" stroke-linecap="round"/>
 
         </svg>
+
