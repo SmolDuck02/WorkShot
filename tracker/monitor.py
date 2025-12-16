@@ -64,7 +64,7 @@ class ActivityMonitor:
     """Monitors active window and tracks time spent."""
     
     # Idle threshold in seconds (user is considered idle after this much inactivity)
-    IDLE_THRESHOLD = 60.0
+    IDLE_THRESHOLD = 45.0
     
     def __init__(self, poll_interval: float = 1.0):
         self.poll_interval = poll_interval

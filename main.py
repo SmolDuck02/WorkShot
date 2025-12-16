@@ -17,6 +17,8 @@ import os
 import psutil
 import warnings
 import asyncio
+from datetime import datetime
+from typing import Optional
 from pathlib import Path
 
 # Add project root to path
@@ -24,6 +26,11 @@ sys.path.insert(0, str(Path(__file__).parent))
 
 from tracker.monitor import get_monitor
 from tracker.db import init_db
+from tracker.export import export_html
+
+
+# Global variable to track app start time
+app_start_time: Optional[datetime] = None
 
 
 def check_and_stop_previous_instances():
@@ -80,6 +87,18 @@ def signal_handler(signum, frame):
     monitor = get_monitor()
     monitor.stop()
     
+    # Auto-export today's data if running > 5 hours
+    if app_start_time:
+        runtime_seconds = (datetime.now() - app_start_time).total_seconds()
+        if runtime_seconds > 18000:  # 5 hours = 18000 seconds
+            try:
+                print("[*] Auto-exporting today's data...")
+                today = datetime.now().strftime("%Y-%m-%d")
+                filepath = export_html(start_date=today, end_date=today)
+                print(f"[+] Report saved: {filepath}")
+            except Exception as e:
+                print(f"[!] Auto-export failed: {e}")
+    
     # Give server thread a brief moment to clean up
     time.sleep(0.3)
     sys.exit(0)
@@ -135,6 +154,8 @@ def suppress_asyncio_errors(loop, context):
 
 def main():
     """Main entry point."""
+    global app_start_time
+    
     # Suppress annoying asyncio warnings on Windows during shutdown
     warnings.filterwarnings("ignore", category=RuntimeWarning, module="asyncio")
     
@@ -155,6 +176,9 @@ def main():
     
     # Check for and stop any previous instances
     check_and_stop_previous_instances()
+    
+    # Track app start time for auto-export
+    app_start_time = datetime.now()
     
     # Parse args
     open_browser = "--no-browser" not in sys.argv
