@@ -43,11 +43,14 @@ Unlike basic time trackers, WorkShot provides:
 - **Session history** - Detailed log of recent activities
 
 ### 💤 Smart Idle Detection
-- **Context-aware inactivity** - Detects idle time after 45 seconds of no input
-- **Media exemption** - Watching movies, reading PDFs, or video streaming counts as active (not idle)
+- **Context-aware inactivity** - Detects idle time after 45 seconds of no keyboard/mouse input
+- **Intelligent window title analysis** - Checks if you're actually watching/reading (not just having a browser open)
+- **Media consumption tracking** - YouTube, Netflix, anime sites, video players count as active usage
+- **Reading detection** - PDFs and documents recognized as active time
+- **Always-active apps** - Video players (VLC), music (Spotify), and video calls (Zoom, Teams) never trigger idle
 - **Separate idle tracking** - True idle time is logged but excluded from productivity stats
 - **Smart resume** - Seamlessly continues tracking when you return
-- **Supported activities**: Browsers (YouTube, Netflix), video players (VLC, Media Player), PDF readers, video calls (Zoom, Teams), and more
+- **Example**: Chrome with YouTube video = active ✓ | Chrome with blank tab = can go idle ✓
 
 ### 📤 Flexible Data Export
 - **Multiple formats**: CSV (raw data), JSON (structured), HTML (styled reports)

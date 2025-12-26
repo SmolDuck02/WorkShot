@@ -66,22 +66,38 @@ class ActivityMonitor:
     # Idle threshold in seconds (user is considered idle after this much inactivity)
     IDLE_THRESHOLD = 45.0
     
-    # Apps that should NOT trigger idle detection (media consumption, reading, etc.)
-    IDLE_EXEMPT_APPS = [
-        # Browsers (watching videos, reading)
-        'chrome', 'firefox', 'edge', 'msedge', 'opera', 'brave', 'safari', 'arc',
-        # Video/Media Players
+    # Standalone apps that should ALWAYS be exempt from idle detection
+    ALWAYS_EXEMPT_APPS = [
+        # Video/Media Players (if user opened it, they're watching)
         'vlc', 'mpc', 'mediaplayer', 'potplayer', 'kmplayer', 'media player',
         'windows media player', 'groove', 'movies & tv', 'films & tv',
-        # Streaming Services
-        'netflix', 'youtube', 'spotify', 'prime video', 'disney', 'hulu',
+        # Music
+        'spotify', 'apple music', 'itunes', 'foobar', 'winamp',
         # Communication (video calls)
         'zoom', 'teams', 'skype', 'discord', 'slack',
-        # Reading Apps
-        'adobe', 'acrobat', 'foxit', 'pdf', 'kindle', 'calibre',
-        'microsoft edge webview', 'edge webview',
-        # Entertainment
+        # Gaming (active gameplay)
         'steam', 'epic', 'twitch',
+    ]
+    
+    # Keywords in window title that indicate media consumption or reading
+    VIDEO_STREAMING_KEYWORDS = [
+        # Streaming platforms
+        'youtube', 'netflix', 'prime video', 'disney+', 'disney plus', 'hulu',
+        'twitch', 'vimeo', 'dailymotion', 'crunchyroll', 'funimation',
+        'nekoanime', 'gogoanime', 'animixplay', '9anime',
+        # Video indicators
+        '- playing', 'now playing', 'video player', 'watch', 'watching',
+        'stream', 'streaming', 'live', 'movies', 'movie', 'episode',
+        # Common patterns
+        'watch online', 'watch movies', 'watch video',
+    ]
+    
+    READING_KEYWORDS = [
+        # Document types
+        'pdf', '.pdf', 'document', 'reader',
+        # Reading apps
+        'adobe', 'acrobat', 'foxit', 'kindle', 'calibre',
+        'microsoft edge webview', 'edge webview',
     ]
     
     def __init__(self, poll_interval: float = 1.0):
@@ -143,18 +159,32 @@ class ActivityMonitor:
             return 1
     
     def _is_media_or_reading_app(self, state: Optional[ActivityState]) -> bool:
-        """Check if the current app should be exempt from idle detection (media/reading apps)."""
+        """
+        Smart detection: Check if user is actually consuming media/reading based on app and window title.
+        This prevents false exemptions (e.g., idle Chrome tab vs watching YouTube).
+        """
         if not state:
             return False
         
         app_name_lower = state.app_name.lower()
         window_title_lower = state.window_title.lower()
         
-        # Check if app name or window title contains any exempt keywords
-        for keyword in self.IDLE_EXEMPT_APPS:
+        # 1. Check standalone media apps (always exempt - if they opened it, they're using it)
+        for app in self.ALWAYS_EXEMPT_APPS:
+            if app in app_name_lower:
+                return True
+        
+        # 2. Check window title for video/streaming activity
+        for keyword in self.VIDEO_STREAMING_KEYWORDS:
+            if keyword in window_title_lower:
+                return True  # Actively watching something
+        
+        # 3. Check for reading activity (PDFs, documents)
+        for keyword in self.READING_KEYWORDS:
             if keyword in app_name_lower or keyword in window_title_lower:
                 return True
         
+        # Default: Allow idle detection (e.g., empty browser tab)
         return False
     
     def _get_active_window_info(self) -> Optional[ActivityState]:
