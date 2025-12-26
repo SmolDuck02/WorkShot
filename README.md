@@ -42,14 +42,17 @@ Unlike basic time trackers, WorkShot provides:
 - **Monitor usage** - See how time is distributed across your displays
 - **Session history** - Detailed log of recent activities
 
-### 💤 Intelligent Idle Detection
-- **Automatic pause** when user is inactive (configurable timeout)
-- **Separate idle tracking** - Idle time is logged but excluded from app statistics
+### 💤 Smart Idle Detection
+- **Context-aware inactivity** - Detects idle time after 45 seconds of no input
+- **Media exemption** - Watching movies, reading PDFs, or video streaming counts as active (not idle)
+- **Separate idle tracking** - True idle time is logged but excluded from productivity stats
 - **Smart resume** - Seamlessly continues tracking when you return
+- **Supported activities**: Browsers (YouTube, Netflix), video players (VLC, Media Player), PDF readers, video calls (Zoom, Teams), and more
 
 ### 📤 Flexible Data Export
 - **Multiple formats**: CSV (raw data), JSON (structured), HTML (styled reports)
 - **Date filtering**: Export specific dates, weeks, months, or custom ranges
+- **Auto-export on shutdown**: Automatically saves today's HTML report when stopping (if running > 5 hours)
 - **Mobile-friendly reports** - HTML exports adapt to any screen size
 - **Fast processing** - Optimized for large datasets
 

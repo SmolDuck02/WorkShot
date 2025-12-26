@@ -66,6 +66,24 @@ class ActivityMonitor:
     # Idle threshold in seconds (user is considered idle after this much inactivity)
     IDLE_THRESHOLD = 45.0
     
+    # Apps that should NOT trigger idle detection (media consumption, reading, etc.)
+    IDLE_EXEMPT_APPS = [
+        # Browsers (watching videos, reading)
+        'chrome', 'firefox', 'edge', 'msedge', 'opera', 'brave', 'safari', 'arc',
+        # Video/Media Players
+        'vlc', 'mpc', 'mediaplayer', 'potplayer', 'kmplayer', 'media player',
+        'windows media player', 'groove', 'movies & tv', 'films & tv',
+        # Streaming Services
+        'netflix', 'youtube', 'spotify', 'prime video', 'disney', 'hulu',
+        # Communication (video calls)
+        'zoom', 'teams', 'skype', 'discord', 'slack',
+        # Reading Apps
+        'adobe', 'acrobat', 'foxit', 'pdf', 'kindle', 'calibre',
+        'microsoft edge webview', 'edge webview',
+        # Entertainment
+        'steam', 'epic', 'twitch',
+    ]
+    
     def __init__(self, poll_interval: float = 1.0):
         self.poll_interval = poll_interval
         self.current_state: Optional[ActivityState] = None
@@ -124,6 +142,21 @@ class ActivityMonitor:
         except Exception:
             return 1
     
+    def _is_media_or_reading_app(self, state: Optional[ActivityState]) -> bool:
+        """Check if the current app should be exempt from idle detection (media/reading apps)."""
+        if not state:
+            return False
+        
+        app_name_lower = state.app_name.lower()
+        window_title_lower = state.window_title.lower()
+        
+        # Check if app name or window title contains any exempt keywords
+        for keyword in self.IDLE_EXEMPT_APPS:
+            if keyword in app_name_lower or keyword in window_title_lower:
+                return True
+        
+        return False
+    
     def _get_active_window_info(self) -> Optional[ActivityState]:
         """Get information about the currently active window."""
         try:
@@ -174,12 +207,18 @@ class ActivityMonitor:
                 print(f"Listener error: {e}")
     
     def _monitoring_loop(self):
-        """Main monitoring loop with idle detection."""
+        """Main monitoring loop with smart idle detection."""
         while self.running:
             idle_seconds = get_idle_duration()
             
-            # Check if user is idle
-            if idle_seconds >= self.IDLE_THRESHOLD:
+            # Get current active window to check if it's a media/reading app
+            current_window = self._get_active_window_info()
+            is_media_app = self._is_media_or_reading_app(current_window)
+            
+            # Check if user is idle (no keyboard/mouse input)
+            # BUT: If they're watching/reading (media app), don't mark as idle
+            if idle_seconds >= self.IDLE_THRESHOLD and not is_media_app:
+                # User is truly idle (not watching/reading)
                 if not self._is_idle:
                     # Just became idle - transition to idle state
                     self._is_idle = True
@@ -216,7 +255,7 @@ class ActivityMonitor:
                 self._notify_listeners(self.current_state, elapsed, is_idle=True)
             
             else:
-                # User is active
+                # User is active (either moving mouse/keyboard OR watching/reading)
                 if self._is_idle:
                     # Just came back from idle - end idle session
                     self._is_idle = False
@@ -226,7 +265,7 @@ class ActivityMonitor:
                     self._idle_start_time = None
                 
                 # Normal activity tracking
-                new_state = self._get_active_window_info()
+                new_state = current_window  # Use the window we already fetched
                 
                 if new_state:
                     if self.current_state is None or not self.current_state.matches(new_state):
