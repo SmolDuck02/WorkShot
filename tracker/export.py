@@ -275,6 +275,8 @@ def export_json(
     monitor_totals = {}
     for session in sessions:
         m = session['monitor']
+        if m <= 0:
+            continue
         if m not in monitor_totals:
             monitor_totals[m] = {'monitor': m, 'total_seconds': 0, 'session_count': 0}
         monitor_totals[m]['total_seconds'] += session['duration_seconds'] or 0
@@ -357,7 +359,7 @@ def export_html(
     max_app_time = by_app_sorted[0][1]['total_seconds'] if by_app_sorted else 1
     
     # Limit apps shown for performance (top 30 apps)
-    by_app_sorted = by_app_sorted[:30]
+    by_app_sorted = by_app_sorted
     
     # Group by monitor
     monitor_totals = {1: 0, 2: 0}
@@ -391,9 +393,10 @@ def export_html(
     
     # Build session cards (limit to 50 most recent for performance)
     session_cards = ""
-    for s in sessions[:50]:
+    for s in sessions:
         start_time = s['start_time'][11:16] if s['start_time'] and len(s['start_time']) > 16 else '--:--'
         title = s['window_title'][:40] if s['window_title'] else '-'
+        monitor = '-' if s['is_idle'] else 'M' + str(s['monitor'])
         if s['window_title'] and len(s['window_title']) > 40:
             title += '...'
         session_cards += f"""
@@ -402,7 +405,7 @@ def export_html(
                 <span class="session-card-app">{sanitize_app_name(s['app_name'])}</span>
                 <span class="session-card-title">{title}</span>
                 <span class="session-card-duration">{format_duration(s['duration_seconds'] or 0)}</span>
-                <span class="session-card-monitor">M{s['monitor']}</span>
+                <span class="session-card-monitor">{monitor}</span>
             </div>"""
     
     html_content = f"""<!DOCTYPE html>
