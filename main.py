@@ -27,6 +27,7 @@ sys.path.insert(0, str(Path(__file__).parent))
 from tracker.monitor import get_monitor
 from tracker.db import init_db
 from tracker.export import export_html
+from upload import upload_file
 
 
 # Global variable to track app start time
@@ -96,6 +97,14 @@ def signal_handler(signum, frame):
                 today = datetime.now().strftime("%Y-%m-%d")
                 filepath = export_html(start_date=today, end_date=today)
                 print(f"[+] Report saved: {filepath}")
+                
+                # Upload to Google Drive
+                try:
+                    print("[*] Uploading to Google Drive...")
+                    upload_file(str(filepath))
+                except Exception as upload_error:
+                    print(f"[!] Google Drive upload failed: {upload_error}")
+                    print("[*] Report was still saved locally")
             except Exception as e:
                 print(f"[!] Auto-export failed: {e}")
     

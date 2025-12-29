@@ -110,6 +110,8 @@ class ActivityMonitor:
         self._is_idle = False
         self._idle_start_time: Optional[datetime] = None
         self._pre_idle_state: Optional[ActivityState] = None  # State before going idle
+        self._last_media_activity_time: Optional[datetime] = None  # Track when user was last in a media app
+        self._media_grace_period = 180.0  # 3 minutes grace period after watching/reading
     
     def _get_monitors_info(self) -> list[dict]:
         """Get information about connected monitors."""
@@ -169,21 +171,24 @@ class ActivityMonitor:
         app_name_lower = state.app_name.lower()
         window_title_lower = state.window_title.lower()
         
+        
         # 1. Check standalone media apps (always exempt - if they opened it, they're using it)
         for app in self.ALWAYS_EXEMPT_APPS:
             if app in app_name_lower:
+                # print(f"[MEDIA DETECT] ✓ Matched always-exempt app: '{app}' in '{app_name_lower}'")
                 return True
         
         # 2. Check window title for video/streaming activity
         for keyword in self.VIDEO_STREAMING_KEYWORDS:
             if keyword in window_title_lower:
+                # print(f"[MEDIA DETECT] ✓ Matched video keyword: '{keyword}' in title")
                 return True  # Actively watching something
         
         # 3. Check for reading activity (PDFs, documents)
         for keyword in self.READING_KEYWORDS:
             if keyword in app_name_lower or keyword in window_title_lower:
+                # print(f"[MEDIA DETECT] ✓ Matched reading keyword: '{keyword}'")
                 return True
-        
         # Default: Allow idle detection (e.g., empty browser tab)
         return False
     
@@ -245,14 +250,35 @@ class ActivityMonitor:
             current_window = self._get_active_window_info()
             is_media_app = self._is_media_or_reading_app(current_window)
             
+            # Update last media activity timestamp if currently in a media app
+            if is_media_app:
+                self._last_media_activity_time = datetime.now()
+            
+            # Check if we're within the grace period (user was recently watching/reading)
+            within_grace_period = False
+            if self._last_media_activity_time:
+                seconds_since_media = (datetime.now() - self._last_media_activity_time).total_seconds()
+                within_grace_period = seconds_since_media < self._media_grace_period
+            
             # Check if user is idle (no keyboard/mouse input)
-            # BUT: If they're watching/reading (media app), don't mark as idle
-            if idle_seconds >= self.IDLE_THRESHOLD and not is_media_app:
-                # User is truly idle (not watching/reading)
+            # BUT: If they're watching/reading (media app) OR within grace period, don't mark as idle
+            should_be_idle = idle_seconds >= self.IDLE_THRESHOLD and not is_media_app and not within_grace_period
+            
+            # DEBUG: Log the decision
+            if idle_seconds >= self.IDLE_THRESHOLD - 2:
+                app_info = f"'{current_window.app_name}'" if current_window else "None"
+                title_info = f"'{current_window.window_title[:50]}...'" if current_window else "None"
+                print(f"[IDLE CHECK] {idle_seconds:.1f}s | App: {app_info} | Title: {title_info}")
+                print(f"  → is_media_app: {is_media_app} | within_grace: {within_grace_period} | will_go_idle: {should_be_idle}")
+            
+            if should_be_idle:
+                # User is truly idle (not watching/reading, and grace period expired)
                 if not self._is_idle:
+                    print(f"[!!!] GOING IDLE NOW - App: {current_window.app_name if current_window else 'None'}")
                     # Just became idle - transition to idle state
                     self._is_idle = True
                     self._idle_start_time = datetime.now()
+                    self._last_media_activity_time = None  # Clear grace period when going idle
                     
                     # Save current state before going idle
                     if self.current_state and not self.current_state.is_idle:
