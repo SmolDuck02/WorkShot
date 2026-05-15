@@ -64,7 +64,7 @@ async def get_current_activity():
     if activity:
         activity['elapsed_formatted'] = format_duration(activity['elapsed_seconds'])
     
-    return activity or {"status": "idle"}
+    return activity or {"status": "idle", "elapsed_seconds": 0, "elapsed_formatted": "00:00:00"}
 
 
 @app.get("/api/today")
@@ -125,10 +125,18 @@ async def stream_updates():
                 activity = monitor.get_current_activity()
                 
                 if activity:
-                    activity['elapsed_formatted'] = format_duration(activity['elapsed_seconds'])
+                    raw_seconds = activity.get('elapsed_seconds', 0)
+                    
+                    activity['elapsed_seconds'] = raw_seconds
+                    activity['elapsed_formatted'] = format_duration(raw_seconds)
+                    
                     data = json.dumps(activity)
                 else:
-                    data = json.dumps({"status": "idle"})
+                    data = json.dumps({
+                        "status": "idle", 
+                        "elapsed_seconds": 0, 
+                        "elapsed_formatted": "00:00:00"
+                    })
                 
                 yield f"data: {data}\n\n"
                 
@@ -136,7 +144,7 @@ async def stream_updates():
             except asyncio.CancelledError:
                 break
             except Exception as e:
-                print(f"SSE Error: {e}")
+                print(f"SSE Error: {repr(e)}") 
                 await asyncio.sleep(1)
     
     return StreamingResponse(
