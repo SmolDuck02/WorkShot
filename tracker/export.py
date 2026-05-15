@@ -541,7 +541,7 @@ def export_html(
                 </div>
                 <div class="sc-right">
                     <span class="session-card-duration">{format_duration(s['duration_seconds'] or 0)}</span>
-                    <span class="session-card-monitor">{monitor}</span>
+                    <span class="session-card-monitor {monitor.lower()}">{monitor}</span>
                 </div>
             </div>"""
     
@@ -668,9 +668,11 @@ def export_html(
         .session-card-time {{ font-family: 'JetBrains Mono', monospace; color: var(--text-muted); font-size: 0.7rem; }}
         .session-card-app {{ font-weight: 500; color: var(--text-primary); font-size: 0.8rem; }}
         .session-card-title {{ font-size: 0.7rem; color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: block; }}
-        .session-card-duration {{ font-family: 'JetBrains Mono', monospace; color: var(--purple); font-size: 0.7rem; }}
+        .session-card-duration {{ font-family: 'JetBrains Mono', monospace; color: var(--text-muted); font-size: 0.7rem; }}
         .session-card-monitor {{ font-size: 0.6rem; color: var(--text-muted); background: var(--border); padding: 0.125rem 0.3rem; border-radius: 3px; }}
-        
+        .session-card-monitor.m1 {{ color: var(--accent); }}
+        .session-card-monitor.m2 {{ color: var(--purple); }}
+
         .monitor-grid {{ display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; }}
         .monitor-card {{ background: var(--elevated); border-radius: 6px; padding: 0.75rem; text-align: center; border-top: 2px solid transparent; }}
         .monitor-card.m1 {{ border-top-color: var(--accent); }}
@@ -695,7 +697,7 @@ def export_html(
             .desktop-dailies {{ display: none; }}
             .mobile-dailies {{ display: block; }}
             
-            .container {{ padding: 1rem; }}
+            .container {{ padding: 1rem; width: 100%; }}
             .stats-grid {{ grid-template-columns: repeat(2, 1fr); }}
             
             .session-card {{ flex-direction: column; align-items: flex-start; }}
