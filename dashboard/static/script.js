@@ -515,32 +515,37 @@ function setPreset(preset) {
     switch (preset) {
         case 'today':
             startDate = endDate = formatDateForInput(today);
-            label = 'Today';
+            const todayName = today.toLocaleString('default', { day: 'numeric', month: 'long' });
+            label = `Today (${todayName})`;
             break;
             
         case 'yesterday':
             const yesterday = new Date(today);
             yesterday.setDate(yesterday.getDate() - 1);
             startDate = endDate = formatDateForInput(yesterday);
-            label = 'Yesterday (Dec 10)';
+            const yesterdayName = yesterday.toLocaleString('default', { day: 'numeric', month: 'long' });
+            label = `Yesterday (${yesterdayName})`;
             break;
             
         case 'week':
             // Get start of week (Monday)
             const weekStart = new Date(today);
             const dayOfWeek = today.getDay();
-            const diff = dayOfWeek === 0 ? 6 : dayOfWeek - 1; // Adjust for Monday start
-            weekStart.setDate(today.getDate() - diff);
+            const diff = dayOfWeek === 0 ? 6 : dayOfWeek - 1; // 5 days ago to today
+            const sevenDaysAgo = new Date(weekStart).getDate() - 8; // seven days ago
+            weekStart.setDate(today.getDate() - sevenDaysAgo);
             startDate = formatDateForInput(weekStart);
             endDate = formatDateForInput(today);
-            label = 'This Week';
+            const weekName = weekStart.toLocaleString('default', { day: 'numeric', month: 'long' }) + ' - ' + today.toLocaleString('default', { day: 'numeric', month: 'long' });
+            label = `This Week (${weekName})`;
             break;
             
         case 'month':
             const monthStart = new Date(today.getFullYear(), today.getMonth(), 1);
+            const monthName = new Date(today.getFullYear(), today.getMonth(), 1).toLocaleString('default', { month: 'long' });
             startDate = formatDateForInput(monthStart);
             endDate = formatDateForInput(today);
-            label = 'This Month (December)';
+            label = `This Month (${monthName})`;
             break;
             
         case 'all':
@@ -575,14 +580,10 @@ function updatePresetSelection() {
     const startDate = document.getElementById('export-start-date').value;
     const endDate = document.getElementById('export-end-date').value;
     
-    let label = 'Custom Range';
-    if (startDate && endDate) {
-        if (startDate === endDate) {
-            label = startDate;
-        } else {
-            label = `${startDate} to ${endDate}`;
-        }
-    }
+    const startDateName = new Date(startDate).toLocaleString('default', { day: 'numeric', month: 'long' });
+    const endDateName = new Date(endDate).toLocaleString('default', { day: 'numeric', month: 'long' });
+    
+    let label = `Custom Range (${startDateName} - ${endDateName})`;
     
     updateSelectedRangeDisplay(label, startDate, endDate);
 }
