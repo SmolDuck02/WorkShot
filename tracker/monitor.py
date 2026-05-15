@@ -64,7 +64,7 @@ class ActivityMonitor:
     """Monitors active window and tracks time spent."""
     
     # Idle threshold in seconds (user is considered idle after this much inactivity)
-    IDLE_THRESHOLD = 45.0
+    IDLE_THRESHOLD = 300.0 # 5 minutes
     
     # Standalone apps that should ALWAYS be exempt from idle detection
     ALWAYS_EXEMPT_APPS = [
