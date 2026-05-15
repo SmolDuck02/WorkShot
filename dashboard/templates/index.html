@@ -129,22 +129,23 @@
         </div>
 
         <!-- Session Label Modal -->
-        <div id="label-modal" class="add-session-label-modal-overlay">
-            <div class="modal-content" style="position: relative;">
-                <svg onclick="closeNewLabelModal()" style="cursor: pointer; position: absolute; top: 30px; right: 25px;" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6.758 17.243L12.001 12m5.243-5.243L12 12m0 0L6.758 6.757M12.001 12l5.243 5.243"/></svg>
-                <h3>Current Task</h3>
-                <br/>
+        <div class="modal-overlay" id="session-label-modal">
+                <div class="modal" onclick="event.stopPropagation()">
+                    <div class="modal-header">
+                        <h2>Current Task</h2>
+                        <button class="modal-close" onclick="document.getElementById('session-label-modal').classList.remove('active')">&times;</button>
+                    </div>
+                
+                <div class="modal-body">
                 <div id="modal-active-label-row" class="task-row hoverable-row" 
-                    style="display: flex; color: #fff; align-items: center; justify-content: space-between; border: 1px solid #5b8def; filter: drop-shadow(0 0 4px rgba(86, 149, 212, 0.4)); padding: 14px 10px; border-radius: 6px;  transition: all 0.2s;">
+                    style="display: flex; color: #fff; margin: 12px; align-items: center; justify-content: space-between; background: var(--bg-card); border-right: 5px solid #333; border-left: 5px solid #333; filter: drop-shadow(0 0 10px rgba(86, 149, 212, 0.4)); padding: 14px 10px; border-radius: 12px;  transition: all 0.2s;">
                     
                     <div id="modal-active-label-status">
-                        <label style="margin: 6px; color: #e0e0e0; display: flex; align-items: center;">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 14 14"><path fill="currentColor" fill-rule="evenodd" d="M3.564 4.884a1.91 1.91 0 0 0-1.523.542a1.9 1.9 0 0 0-.442.691a2.5 2.5 0 0 0-.08.511c-.02.255-.02.49 0 .744c.02.241.052.434.08.51A1.87 1.87 0 0 0 2.74 9.015c.263.094.545.129.824.102l.07-.003c.373 0 .78-.2 1.271-.68c.392-.384.77-.879 1.172-1.433c-.401-.554-.78-1.049-1.172-1.432c-.491-.482-.898-.681-1.27-.681zM7 8.277a11 11 0 0 1-1.045 1.227c-.598.585-1.352 1.096-2.284 1.109a3.41 3.41 0 0 1-2.687-.974a3.4 3.4 0 0 1-.796-1.246c-.104-.287-.144-.664-.163-.9A6 6 0 0 1 0 7q.001-.247.024-.493c.02-.236.06-.613.163-.9a3.37 3.37 0 0 1 2.048-2.034c.46-.164.95-.227 1.435-.186c.932.013 1.686.524 2.284 1.109c.368.36.716.789 1.045 1.227a11 11 0 0 1 1.045-1.227c.598-.585 1.352-1.096 2.284-1.109a3.41 3.41 0 0 1 2.687.974c.354.352.626.777.796 1.246c.104.287.144.664.163.9q.022.246.025.493q-.002.247-.025.493c-.02.236-.06.613-.163.9a3.37 3.37 0 0 1-2.048 2.034c-.46.164-.95.227-1.435.186c-.932-.013-1.686-.524-2.284-1.109a11 11 0 0 1-1.045-1.227m5.48-.905c-.02.241-.051.434-.079.51a1.87 1.87 0 0 1-1.141 1.132a1.9 1.9 0 0 1-.824.102l-.07-.003c-.373 0-.78-.2-1.271-.68c-.392-.384-.77-.879-1.172-1.433c.401-.554.78-1.049 1.172-1.432c.491-.482.898-.681 1.27-.681l.071-.003a1.91 1.91 0 0 1 1.523.542c.197.196.348.432.442.691c.028.077.06.27.08.511c.02.255.02.49 0 .744" clip-rule="evenodd"/></svg>
-                        </label>
+
                     </div>
 
                     <span id="modal-active-label-name" style="flex-grow: 1; margin-left: 12px; font-weight: bold; font-size: 14px;">
-                        General
+
                     </span>
                     
                     <div id="modal-active-label-date" style="font-style: italic; font-size: 0.75rem; color: #444444; display: flex; align-items: end; gap: 0.3rem;">
@@ -153,7 +154,7 @@
                 </div>
                 <br/>
                 <div style="display: flex; flex-direction: column; width: 100%;">
-                    <div style="display: flex; align-items: center; justify-content: space-between;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; padding: 0 20px;">
                         <label>All Tasks</label>
                         <div style="display: flex; align-items: center; gap: 0.8rem;">
                             
@@ -173,11 +174,12 @@
                            onblur="executeSearch(''); document.getElementById('task-search-input').value = ''; document.getElementById('task-search-input').style.display = 'none';"
                            style="display: none; width: 100%; margin-top: 10px; background: var(--bg-hover); color: #e0e0e0; border: 1px solid #333; padding: 10px 10px; border-radius: 4px; box-sizing: border-box;">
                 </div>
-                <div id="label-container" class="flex-wrap" style="margin-top: 5px; max-height: 260px; overflow-y: auto;">
+                <div id="label-container" class="flex-wrap" style="margin-top: 5px; max-height: 260px; overflow-y: auto; border-radius: 12px; padding: 8px; padding-right: 5px">
                 </div>
 
                 <div class="gradient-divider"></div>
-                <button class="btn-primary" style="width: 100%;" onclick="document.getElementById('new-label-modal').style.display='flex'">Create New Task</button>
+                <button class="btn-primary" style="width: 100%; padding: 14px 20px;" onclick="document.getElementById('new-label-modal').style.display='flex'">Create New Task</button>
+            </div>
             </div>
         </div>
 
@@ -192,7 +194,7 @@
                     <h2 class="card-title">Active Task</h2>
                     <div style="display:flex; align-items: center; gap: 0.25rem;">
                         <button id="active-label-chip" class="label-chip active" style="font-size: 1.25rem;">General</button>
-                        <button class="add-session-label-btn" onclick="showNewLabelModal()" title="Switch Task">
+                        <button class="add-session-label-btn" onclick="document.getElementById('session-label-modal').classList.add('active');" title="Switch Task">
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="m10 19l-7-7l7-7zm4 0V5l7 7zm1.5-3.625L18.875 12L15.5 8.625z"/></svg>
                         </button>
                     </div>

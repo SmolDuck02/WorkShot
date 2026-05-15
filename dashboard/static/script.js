@@ -723,11 +723,12 @@ async function loadLabels() {
     
     container.innerHTML = '';
 
-    const taskContainerStyle = 'padding: 8px 12px; border-radius: 6px; cursor: pointer; margin-bottom: 6px; transition: all 0.2s;';
+    const taskContainerStyle = 'display: flex; align-items: center; justify-content: space-between; background: #1a1a1f; border-left: 4px solid transparent; padding: 8px 12px; border-radius: 12px; cursor: pointer; margin-bottom: 6px; transition: all 0.2s;';
 
     const modalActiveLabelRow = document.getElementById('modal-active-label-row');
     if (modalActiveLabelRow) {
-        modalActiveLabelRow.style.borderColor = labels.find(label => label.id === currentActiveLabelId)?.color;
+        modalActiveLabelRow.style.borderColor = labels.find(label => label.id === currentActiveLabelId)?.color || '#5b8def';
+        modalActiveLabelRow.style.filter = `drop-shadow(0 0 5px ${hexToRgba(labels.find(label => label.id === currentActiveLabelId)?.color || '#5b8def', 0.3)})`;
     }
 
     const activeLabelChip = document.getElementById('active-label-chip');
@@ -749,12 +750,12 @@ async function loadLabels() {
     if (modalActiveLabelStatus) {
         if (currentActiveLabelId === 0 || !activeLabelObj) {
             // General Task Infinity Icon
-            modalActiveLabelStatus.innerHTML = `<label style="margin: 6px; color: #e0e0e0; display: flex; align-items: center;">
-                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 14 14"><path fill="currentColor" fill-rule="evenodd" d="M3.564 4.884a1.91 1.91 0 0 0-1.523.542a1.9 1.9 0 0 0-.442.691a2.5 2.5 0 0 0-.08.511c-.02.255-.02.49 0 .744c.02.241.052.434.08.51A1.87 1.87 0 0 0 2.74 9.015c.263.094.545.129.824.102l.07-.003c.373 0 .78-.2 1.271-.68c.392-.384.77-.879 1.172-1.433c-.401-.554-.78-1.049-1.172-1.432c-.491-.482-.898-.681-1.27-.681zM7 8.277a11 11 0 0 1-1.045 1.227c-.598.585-1.352 1.096-2.284 1.109a3.41 3.41 0 0 1-2.687-.974a3.4 3.4 0 0 1-.796-1.246c-.104-.287-.144-.664-.163-.9A6 6 0 0 1 0 7q.001-.247.024-.493c.02-.236.06-.613.163-.9a3.37 3.37 0 0 1 2.048-2.034c.46-.164.95-.227 1.435-.186c.932.013 1.686.524 2.284 1.109c.368.36.716.789 1.045 1.227a11 11 0 0 1 1.045-1.227c.598-.585 1.352-1.096 2.284-1.109a3.41 3.41 0 0 1 2.687.974c.354.352.626.777.796 1.246c.104.287.144.664.163.9q.022.246.025.493q-.002.247-.025.493c-.02.236-.06.613-.163.9a3.37 3.37 0 0 1-2.048 2.034c-.46.164-.95.227-1.435.186c-.932-.013-1.686-.524-2.284-1.109a11 11 0 0 1-1.045-1.227m5.48-.905c-.02.241-.051.434-.079.51a1.87 1.87 0 0 1-1.141 1.132a1.9 1.9 0 0 1-.824.102l-.07-.003c-.373 0-.78-.2-1.271-.68c-.392-.384-.77-.879-1.172-1.433c.401-.554.78-1.049 1.172-1.432c.491-.482.898-.681 1.27-.681l.071-.003a1.91 1.91 0 0 1 1.523.542c.197.196.348.432.442.691c.028.077.06.27.08.511c.02.255.02.49 0 .744" clip-rule="evenodd"/></svg>
+            modalActiveLabelStatus.innerHTML = `<label style="padding: 3px 8px; color: #e0e0e0; display: flex; align-items: center;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 14 14"><path fill="currentColor" fill-rule="evenodd" d="M3.564 4.884a1.91 1.91 0 0 0-1.523.542a1.9 1.9 0 0 0-.442.691a2.5 2.5 0 0 0-.08.511c-.02.255-.02.49 0 .744c.02.241.052.434.08.51A1.87 1.87 0 0 0 2.74 9.015c.263.094.545.129.824.102l.07-.003c.373 0 .78-.2 1.271-.68c.392-.384.77-.879 1.172-1.433c-.401-.554-.78-1.049-1.172-1.432c-.491-.482-.898-.681-1.27-.681zM7 8.277a11 11 0 0 1-1.045 1.227c-.598.585-1.352 1.096-2.284 1.109a3.41 3.41 0 0 1-2.687-.974a3.4 3.4 0 0 1-.796-1.246c-.104-.287-.144-.664-.163-.9A6 6 0 0 1 0 7q.001-.247.024-.493c.02-.236.06-.613.163-.9a3.37 3.37 0 0 1 2.048-2.034c.46-.164.95-.227 1.435-.186c.932.013 1.686.524 2.284 1.109c.368.36.716.789 1.045 1.227a11 11 0 0 1 1.045-1.227c.598-.585 1.352-1.096 2.284-1.109a3.41 3.41 0 0 1 2.687.974c.354.352.626.777.796 1.246c.104.287.144.664.163.9q.022.246.025.493q-.002.247-.025.493c-.02.236-.06.613-.163.9a3.37 3.37 0 0 1-2.048 2.034c-.46.164-.95.227-1.435.186c-.932-.013-1.686-.524-2.284-1.109a11 11 0 0 1-1.045-1.227m5.48-.905c-.02.241-.051.434-.079.51a1.87 1.87 0 0 1-1.141 1.132a1.9 1.9 0 0 1-.824.102l-.07-.003c-.373 0-.78-.2-1.271-.68c-.392-.384-.77-.879-1.172-1.433c.401-.554.78-1.049 1.172-1.432c.491-.482.898-.681 1.27-.681l.071-.003a1.91 1.91 0 0 1 1.523.542c.197.196.348.432.442.691c.028.077.06.27.08.511c.02.255.02.49 0 .744" clip-rule="evenodd"/></svg>
             </label>`;
         } else {
             // Status Toggle Button
-            modalActiveLabelStatus.innerHTML = `<button id="current-status-toggle-btn" class="status-toggle-btn active status-${activeLabelObj.status}" 
+            modalActiveLabelStatus.innerHTML = `<button id="current-status-toggle-btn" style="padding: 0 8px;" class="status-toggle-btn active status-${activeLabelObj.status}" 
                 onclick="event.stopPropagation(); cycleTaskStatus(${activeLabelObj.id}, '${activeLabelObj.status}')" 
                 title="Current Status: ${activeLabelObj.status}">
                 <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 1024 1024">
@@ -766,7 +767,9 @@ async function loadLabels() {
 
     const modalActiveLabelDate = document.getElementById('modal-active-label-date');
     if (modalActiveLabelDate) {
-        if (activeLabelObj) {
+        if (currentActiveLabelId === 0 || !activeLabelObj) {
+            modalActiveLabelDate.innerHTML = `<label style="color: #fff; width: 20px;">-</label>`;
+        } else {
         modalActiveLabelDate.innerHTML = `<button onclick="event.stopPropagation(); openEditModal(${activeLabelObj.id}, '${activeLabelObj.name}', '${activeLabelObj.color}')" 
                     style="background: transparent; border: none; color: inherit;  cursor: pointer;" title="Edit Task">
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="1.5"/><path fill="currentColor" d="m7 14.94l6.06-6.06l2.06 2.06L9.06 17H7zM16.7 9.35l-1 1l-2.05-2.05l1-1c.21-.22.56-.22.77 0l1.28 1.28c.22.21.22.56 0 .77"/></svg>
@@ -794,15 +797,15 @@ async function loadLabels() {
         container.innerHTML += `
             <div class="task-row hoverable-row" 
                 onclick="switchLabel(0, 'General', 'todo', '-')"
-                style="display: flex; align-items: center; justify-content: space-between; background: #1a1a1f; border-left: 4px solid transparent; ${taskContainerStyle}">
+                style="${taskContainerStyle} padding: 6px 10px;">
                 
                 <label style="margin: 6px; color: #888; display: flex; align-items: center;">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 14 14"><path fill="currentColor" fill-rule="evenodd" d="M3.564 4.884a1.91 1.91 0 0 0-1.523.542a1.9 1.9 0 0 0-.442.691a2.5 2.5 0 0 0-.08.511c-.02.255-.02.49 0 .744c.02.241.052.434.08.51A1.87 1.87 0 0 0 2.74 9.015c.263.094.545.129.824.102l.07-.003c.373 0 .78-.2 1.271-.68c.392-.384.77-.879 1.172-1.433c-.401-.554-.78-1.049-1.172-1.432c-.491-.482-.898-.681-1.27-.681zM7 8.277a11 11 0 0 1-1.045 1.227c-.598.585-1.352 1.096-2.284 1.109a3.41 3.41 0 0 1-2.687-.974a3.4 3.4 0 0 1-.796-1.246c-.104-.287-.144-.664-.163-.9A6 6 0 0 1 0 7q.001-.247.024-.493c.02-.236.06-.613.163-.9a3.37 3.37 0 0 1 2.048-2.034c.46-.164.95-.227 1.435-.186c.932.013 1.686.524 2.284 1.109c.368.36.716.789 1.045 1.227a11 11 0 0 1 1.045-1.227c.598-.585 1.352-1.096 2.284-1.109a3.41 3.41 0 0 1 2.687.974c.354.352.626.777.796 1.246c.104.287.144.664.163.9q.022.246.025.493q-.002.247-.025.493c-.02.236-.06.613-.163.9a3.37 3.37 0 0 1-2.048 2.034c-.46.164-.95.227-1.435.186c-.932-.013-1.686-.524-2.284-1.109a11 11 0 0 1-1.045-1.227m5.48-.905c-.02.241-.051.434-.079.51a1.87 1.87 0 0 1-1.141 1.132a1.9 1.9 0 0 1-.824.102l-.07-.003c-.373 0-.78-.2-1.271-.68c-.392-.384-.77-.879-1.172-1.433c.401-.554.78-1.049 1.172-1.432c.491-.482.898-.681 1.27-.681l.071-.003a1.91 1.91 0 0 1 1.523.542c.197.196.348.432.442.691c.028.077.06.27.08.511c.02.255.02.49 0 .744" clip-rule="evenodd"/></svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 14 14"><path fill="currentColor" fill-rule="evenodd" d="M3.564 4.884a1.91 1.91 0 0 0-1.523.542a1.9 1.9 0 0 0-.442.691a2.5 2.5 0 0 0-.08.511c-.02.255-.02.49 0 .744c.02.241.052.434.08.51A1.87 1.87 0 0 0 2.74 9.015c.263.094.545.129.824.102l.07-.003c.373 0 .78-.2 1.271-.68c.392-.384.77-.879 1.172-1.433c-.401-.554-.78-1.049-1.172-1.432c-.491-.482-.898-.681-1.27-.681zM7 8.277a11 11 0 0 1-1.045 1.227c-.598.585-1.352 1.096-2.284 1.109a3.41 3.41 0 0 1-2.687-.974a3.4 3.4 0 0 1-.796-1.246c-.104-.287-.144-.664-.163-.9A6 6 0 0 1 0 7q.001-.247.024-.493c.02-.236.06-.613.163-.9a3.37 3.37 0 0 1 2.048-2.034c.46-.164.95-.227 1.435-.186c.932.013 1.686.524 2.284 1.109c.368.36.716.789 1.045 1.227a11 11 0 0 1 1.045-1.227c.598-.585 1.352-1.096 2.284-1.109a3.41 3.41 0 0 1 2.687.974c.354.352.626.777.796 1.246c.104.287.144.664.163.9q.022.246.025.493q-.002.247-.025.493c-.02.236-.06.613-.163.9a3.37 3.37 0 0 1-2.048 2.034c-.46.164-.95.227-1.435.186c-.932-.013-1.686-.524-2.284-1.109a11 11 0 0 1-1.045-1.227m5.48-.905c-.02.241-.051.434-.079.51a1.87 1.87 0 0 1-1.141 1.132a1.9 1.9 0 0 1-.824.102l-.07-.003c-.373 0-.78-.2-1.271-.68c-.392-.384-.77-.879-1.172-1.433c.401-.554.78-1.049 1.172-1.432c.491-.482.898-.681 1.27-.681l.071-.003a1.91 1.91 0 0 1 1.523.542c.197.196.348.432.442.691c.028.077.06.27.08.511c.02.255.02.49 0 .744" clip-rule="evenodd"/></svg>
                 </label>
                 <span id="row-name-0" style="flex-grow: 1; margin-left: 12px; font-size: 14px; color: #888; font-weight: normal;">
                     General
                 </span>
-                <label style="font-style: italic; font-size: 0.75rem; color: #888; margin-left: 10px; pointer-events: none;">-</label>
+                <label style="font-style: italic; font-size: 0.75rem; color: #888; margin-right: 10px; pointer-events: none;">-</label>
             </div>`;
     }
 
@@ -832,7 +835,7 @@ async function loadLabels() {
             onclick="switchLabel(${label.id}, '${label.name}', '${label.status}', '${dateStr}')"
             onmouseover="this.style.borderColor = '${label.color}'; this.style.backgroundColor = 'var(--bg-hover)';"
             onmouseout="this.style.borderColor = 'transparent'; this.style.backgroundColor = '#1a1a1f';"
-            style="display: flex; align-items: center; justify-content: space-between; background: #1a1a1f; border-left: 4px solid transparent; ${taskContainerStyle}">
+            style="${taskContainerStyle}">
             
             <div style="display: flex; align-items: center; gap: 12px; flex-grow: 1;">
                 <button class="status-toggle-btn status-${label.status}" 
@@ -901,35 +904,19 @@ async function switchLabel(labelId, labelName, labelStatus, labelDate) {
 
         currentActiveLabelId = labelId; 
         await loadLabels();
-        
-        const activeHeaderChip = document.getElementById('active-label-chip');
-        if (activeHeaderChip) {
-            activeHeaderChip.innerHTML = labelName;
-        }
-
-        const modalActiveLabelName = document.getElementById('modal-active-label-name');
-        if (modalActiveLabelName) {
-            modalActiveLabelName.innerHTML = labelName;
-        }
-
-        const modalActiveLabelStatus = document.getElementById('modal-active-label-status');
-        if (modalActiveLabelStatus) {
-            if (labelName === "General") {
-                modalActiveLabelStatus.innerHTML = `<label style="margin: 6px; color: #e0e0e0; display: flex; align-items: center;">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 14 14"><path fill="currentColor" fill-rule="evenodd" d="M3.564 4.884a1.91 1.91 0 0 0-1.523.542a1.9 1.9 0 0 0-.442.691a2.5 2.5 0 0 0-.08.511c-.02.255-.02.49 0 .744c.02.241.052.434.08.51A1.87 1.87 0 0 0 2.74 9.015c.263.094.545.129.824.102l.07-.003c.373 0 .78-.2 1.271-.68c.392-.384.77-.879 1.172-1.433c-.401-.554-.78-1.049-1.172-1.432c-.491-.482-.898-.681-1.27-.681zM7 8.277a11 11 0 0 1-1.045 1.227c-.598.585-1.352 1.096-2.284 1.109a3.41 3.41 0 0 1-2.687-.974a3.4 3.4 0 0 1-.796-1.246c-.104-.287-.144-.664-.163-.9A6 6 0 0 1 0 7q.001-.247.024-.493c.02-.236.06-.613.163-.9a3.37 3.37 0 0 1 2.048-2.034c.46-.164.95-.227 1.435-.186c.932.013 1.686.524 2.284 1.109c.368.36.716.789 1.045 1.227a11 11 0 0 1 1.045-1.227c.598-.585 1.352-1.096 2.284-1.109a3.41 3.41 0 0 1 2.687.974c.354.352.626.777.796 1.246c.104.287.144.664.163.9q.022.246.025.493q-.002.247-.025.493c-.02.236-.06.613-.163.9a3.37 3.37 0 0 1-2.048 2.034c-.46.164-.95.227-1.435.186c-.932-.013-1.686-.524-2.284-1.109a11 11 0 0 1-1.045-1.227m5.48-.905c-.02.241-.051.434-.079.51a1.87 1.87 0 0 1-1.141 1.132a1.9 1.9 0 0 1-.824.102l-.07-.003c-.373 0-.78-.2-1.271-.68c-.392-.384-.77-.879-1.172-1.433c.401-.554.78-1.049 1.172-1.432c.491-.482.898-.681 1.27-.681l.071-.003a1.91 1.91 0 0 1 1.523.542c.197.196.348.432.442.691c.028.077.06.27.08.511c.02.255.02.49 0 .744" clip-rule="evenodd"/></svg>
-                </label>`;
-            } else {
-                modalActiveLabelStatus.innerHTML = `<button id="current-status-toggle-btn" class="status-toggle-btn active status-${labelStatus}" 
-                    onclick="event.stopPropagation(); cycleTaskStatus(${labelId}, '${labelStatus}')" 
-                    title="Current Status: ${labelStatus}">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 1024 1024">
-                        <path fill="currentColor" d="M512 0C229.232 0 0 229.232 0 512c0 282.784 229.232 512 512 512c282.784 0 512-229.216 512-512C1024 229.232 794.784 0 512 0m0 961.008c-247.024 0-448-201.984-448-449.01c0-247.024 200.976-448 448-448s448 200.977 448 448s-200.976 449.01-448 449.01m204.336-636.352L415.935 626.944l-135.28-135.28c-12.496-12.496-32.752-12.496-45.264 0c-12.496 12.496-12.496 32.752 0 45.248l158.384 158.4c12.496 12.48 32.752 12.48 45.264 0c1.44-1.44 2.673-3.009 3.793-4.64l318.784-320.753c12.48-12.496 12.48-32.752 0-45.263c-12.512-12.496-32.768-12.496-45.28 0"/>
-                    </svg>
-                </button>`;
-            }
-        }
+       
         closeNewLabelModal();
     }
+}
+
+function hexToRgba(hex, alpha = 1) {
+    hex = hex.replace('#', '');
+
+    const r = parseInt(hex.substring(0, 2), 16);
+    const g = parseInt(hex.substring(2, 4), 16);
+    const b = parseInt(hex.substring(4, 6), 16);
+
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 }
 
 function openEditModal(id, name, color) {
