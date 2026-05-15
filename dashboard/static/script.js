@@ -1008,6 +1008,7 @@ async function submitNewLabel() {
     if (response.ok) {
         const responseData = await response.json();
         
+        document.getElementById('new-label-modal').style.display = 'none';
         closeNewLabelModal();
 
         await loadLabels(); 
