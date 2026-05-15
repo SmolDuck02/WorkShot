@@ -27,13 +27,23 @@ def get_db():
     finally:
         conn.close()
 
-
 def init_db():
-    """Initialize database tables."""
+    """Initialize and upgrade database tables."""
     with get_db() as conn:
         cursor = conn.cursor()
         
-        # Sessions table - stores each activity session
+        # 1. Session Labels Table (Tasks)
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS session_labels (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT UNIQUE NOT NULL,
+                status TEXT DEFAULT 'todo', 
+                color TEXT DEFAULT '#5b8def',
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+        
+        # 2. Main Sessions Table
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS sessions (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -43,36 +53,38 @@ def init_db():
                 start_time DATETIME NOT NULL,
                 end_time DATETIME,
                 duration_seconds INTEGER DEFAULT 0,
-                is_idle INTEGER DEFAULT 0
+                is_idle INTEGER DEFAULT 0,
+                session_label_id INTEGER REFERENCES session_labels(id)
             )
         """)
         
-        # Add is_idle column if it doesn't exist (for existing databases)
+        # --- Migrations for existing databases ---
+        
+        # Add is_idle if missing
         try:
             cursor.execute("ALTER TABLE sessions ADD COLUMN is_idle INTEGER DEFAULT 0")
-        except sqlite3.OperationalError:
-            pass  # Column already exists
+        except sqlite3.OperationalError: pass
+
+        # Add session_label_id if missing (Fixed reference)
+        try:
+            cursor.execute("ALTER TABLE sessions ADD COLUMN session_label_id INTEGER REFERENCES session_labels(id)")
+        except sqlite3.OperationalError: pass
+
+        # 3. Indices for performance
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_sessions_start_time ON sessions(start_time)")
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_label_id ON sessions(session_label_id)")
         
-        # Index for faster date-based queries
-        cursor.execute("""
-            CREATE INDEX IF NOT EXISTS idx_sessions_start_time 
-            ON sessions(start_time)
-        """)
-        
-        cursor.execute("""
-            CREATE INDEX IF NOT EXISTS idx_sessions_app_name 
-            ON sessions(app_name)
-        """)
+        conn.commit()
 
 
-def start_session(app_name: str, window_title: str, monitor: int, is_idle: bool = False) -> int:
+def start_session(app_name: str, window_title: str, monitor: int, is_idle: bool = False, session_label_id: Optional[int] = None) -> int:
     """Start a new activity session. Returns session ID."""
     with get_db() as conn:
         cursor = conn.cursor()
         cursor.execute("""
-            INSERT INTO sessions (app_name, window_title, monitor, start_time, is_idle)
-            VALUES (?, ?, ?, ?, ?)
-        """, (app_name, window_title, monitor, datetime.now(), 1 if is_idle else 0))
+            INSERT INTO sessions (app_name, window_title, monitor, start_time, is_idle, session_label_id)
+            VALUES (?, ?, ?, ?, ?, ?)
+        """, (app_name, window_title, monitor, datetime.now(), 1 if is_idle else 0, session_label_id if session_label_id is not None else None))
         return cursor.lastrowid
 
 
@@ -203,5 +215,16 @@ def get_current_session() -> Optional[dict]:
         row = cursor.fetchone()
         return dict(row) if row else None
 
+# FUTURE REFERENCE: when want to sort sessions by label, we can use this.
+# Bulk assign a label to all sessions in a time range.
+def assign_label_to_range(start_time: datetime, end_time: datetime, label_id: int):
+    """Bulk assign a label to all sessions in a time range."""
+    with get_db() as conn:
+        cursor = conn.cursor()
+        cursor.execute("""
+            UPDATE sessions 
+            SET session_label_id = ? 
+            WHERE start_time >= ? AND start_time <= ?
+        """, (label_id, start_time, end_time))
 
 

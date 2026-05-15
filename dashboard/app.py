@@ -5,19 +5,24 @@ import json
 from datetime import datetime
 from pathlib import Path
 from typing import AsyncGenerator
-
+from pydantic import BaseModel
+import sqlite3
 from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse, StreamingResponse
+from fastapi import HTTPException
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
 import sys
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
+from tracker.db import get_db
 from tracker import db
 from tracker.monitor import get_monitor
 from tracker.utils import format_duration, format_duration_compact, sanitize_app_name
 from tracker.export import export_csv, export_json, export_html
+
+from main import record_daily_note
 
 # Paths
 DASHBOARD_DIR = Path(__file__).parent
@@ -33,6 +38,16 @@ app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 # Templates
 templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
 
+class SessionLabelCreate(BaseModel):
+    name: str
+    color: str = "#5b8def"
+
+class StatusUpdate(BaseModel):
+    status: str # 'done', 'todo', or 'partial'
+
+class LabelEdit(BaseModel):
+    name: str
+    color: str
 
 @app.get("/", response_class=HTMLResponse)
 async def dashboard(request: Request):
@@ -182,6 +197,95 @@ async def export_data(
     except Exception as e:
         return {"error": str(e)}
 
+@app.get("/api/session-labels")
+async def get_session_labels():
+    """Fetch all available task session labels."""
+    with get_db() as conn:
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM session_labels ORDER BY created_at DESC")
+        return [dict(row) for row in cursor.fetchall()]
+
+@app.post("/api/session-labels")
+async def create_session_label(session_label: SessionLabelCreate):
+    """Create a new project session label."""
+    with get_db() as conn:
+        cursor = conn.cursor()
+        cursor.execute("INSERT INTO session_labels (name, color) VALUES (?, ?)", 
+                      (session_label.name, session_label.color))
+        return {"id": cursor.lastrowid}
+
+@app.post("/api/monitor/set-session-label/{session_label_id}")
+async def set_monitor_session_label(session_label_id: int):
+    """Tell the monitor to start tagging sessions with this session label."""
+    # Use 0 or -1 to represent 'None/General'
+    actual_id = None if session_label_id <= 0 else session_label_id
+    get_monitor().set_active_session_label(actual_id)
+    return {"status": "success", "active_session_label_id": actual_id}
+
+@app.put("/api/session-labels/{label_id}/status")
+async def update_label_status(label_id: int, payload: StatusUpdate):
+    """Updates a label's status and logs it to the Dailies markdown file."""
+    try:
+        with get_db() as conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT name FROM session_labels WHERE id = ?", (label_id,))
+            row = cursor.fetchone()
+            print(row)
+            if not row:
+                raise HTTPException(status_code=404, detail="Label not found")
+            
+            label_name = row[0]
+
+            cursor.execute("UPDATE session_labels SET status = ? WHERE id = ?", 
+                          (payload.status, label_id))
+            conn.commit()
+
+        log_message = f"Task: {label_name}"
+        record_daily_note(payload.status, log_message)
+
+        # If you mark the currently active task as 'done', reset the monitor to 'General'
+        monitor = get_monitor()
+        if monitor.current_session_label_id == label_id and payload.status == 'done':
+            monitor.set_active_session_label(None)
+            return {"status": "success", "message": "Logged to dailies. Monitor reset to General."}
+
+        return {"status": "success", "message": "Logged to dailies."}
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.put("/api/session-labels/{label_id}")
+async def edit_label(label_id: int, payload: LabelEdit):
+    print("hrtht",payload)
+    """Edits a task's name and color."""
+    try:
+        with get_db() as conn:
+            cursor = conn.cursor()
+            cursor.execute("UPDATE session_labels SET name = ?, color = ? WHERE id = ?", 
+                          (payload.name, payload.color, label_id))
+            conn.commit()
+        return {"status": "success", "message": "Label updated."}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.delete("/api/session-labels/{label_id}")
+async def delete_label(label_id: int):
+    """Deletes a task and resets the monitor if it was active."""
+    try:
+        # Safety Check: If we are deleting the active task, reset monitor to General
+        monitor = get_monitor()
+        if monitor.current_session_label_id == label_id:
+            monitor.set_active_label(None)
+
+        with get_db() as conn:
+            cursor = conn.cursor()
+            cursor.execute("DELETE FROM session_labels WHERE id = ?", (label_id,))
+            conn.commit()
+            
+        return {"status": "success", "message": "Label deleted."}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 def run_server(host: str = "127.0.0.1", port: int = 8787):
     """Run the dashboard server."""

@@ -112,6 +112,7 @@ class ActivityMonitor:
         self._pre_idle_state: Optional[ActivityState] = None  # State before going idle
         self._last_media_activity_time: Optional[datetime] = None  # Track when user was last in a media app
         self._media_grace_period = 180.0  # 3 minutes grace period after watching/reading
+        self.current_session_label_id = None
     
     def _get_monitors_info(self) -> list[dict]:
         """Get information about connected monitors."""
@@ -324,7 +325,10 @@ class ActivityMonitor:
                 new_state = current_window  # Use the window we already fetched
                 
                 if new_state:
-                    if self.current_state is None or not self.current_state.matches(new_state):
+                    if (self.current_state is None or 
+                        not self.current_state.matches(new_state) or 
+                        self.current_state.session_label_id != self.current_session_label_id):
+                        
                         # Activity changed - end old session, start new one
                         if self.current_state and self.current_state.session_id:
                             db.end_session(self.current_state.session_id)
@@ -334,9 +338,11 @@ class ActivityMonitor:
                             new_state.app_name,
                             new_state.window_title,
                             new_state.monitor,
-                            is_idle=False
+                            is_idle=False,
+                            session_label_id=self.current_session_label_id
                         )
                         new_state.session_id = session_id
+                        new_state.session_label_id = self.current_session_label_id
                         new_state.start_time = datetime.now()
                         self.current_state = new_state
                     
@@ -400,6 +406,11 @@ class ActivityMonitor:
             result['idle_duration_formatted'] = self._format_duration(elapsed)
         
         return result
+    
+    def set_active_session_label(self, session_label_id: Optional[int]):
+        """Sets the session label ID to be associated with all new activity logs."""
+        self.current_session_label_id = session_label_id
+        print(f"[*] Monitor context switched: Session Label ID {session_label_id}")
     
     def _format_duration(self, seconds: int) -> str:
         """Format duration for display."""

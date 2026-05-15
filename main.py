@@ -30,67 +30,103 @@ from tracker.export import export_html
 from upload import upload_file
 
 
-# Global variable to track app start time
-app_start_time: Optional[datetime] = None
+# Constants
+APP_START_TIME: Optional[datetime] = None
+LOCK_FILE = Path(__file__).parent / "workshot.pid"
+DAILIES_FILE = Path(__file__).parent / "logs" / "dailies.md"
 
-
-def check_and_stop_previous_instances():
-    """Check for and stop any previous WorkShot instances."""
-    current_pid = os.getpid()
-    script_dir = Path(__file__).resolve().parent
-    stopped_count = 0
+def manage_single_instance():
+    """Ensure mutual exclusion using a PID lock file."""
+    if LOCK_FILE.exists():
+        try:
+            old_pid = int(LOCK_FILE.read_text().strip())
+            if psutil.pid_exists(old_pid):
+                print(f"[*] Stopping previous instance (PID: {old_pid})...")
+                proc = psutil.Process(old_pid)
+                proc.terminate()
+                # Wait for process to actually exit to release DB locks
+                try:
+                    proc.wait(timeout=5)
+                except psutil.TimeoutExpired:
+                    proc.kill()
+                time.sleep(1)
+        except (ValueError, psutil.NoSuchProcess, psutil.AccessDenied):
+            # If PID is invalid or we can't touch it, just move on
+            pass
     
-    try:
-        for proc in psutil.process_iter(['pid', 'name', 'cmdline', 'cwd']):
-            try:
-                # Skip current process
-                if proc.info['pid'] == current_pid:
-                    continue
-                
-                # Check if it's a Python process running main.py
-                if proc.info['name'] and 'python' in proc.info['name'].lower():
-                    cmdline = proc.info.get('cmdline', [])
-                    cwd = proc.info.get('cwd', '')
-                    
-                    # Check if it's running main.py
-                    if cmdline and any('main.py' in str(arg) for arg in cmdline):
-                        # Check if it's THIS main.py (WorkShot) by checking:
-                        # 1. Working directory matches our script directory
-                        # 2. Or full path to our main.py in cmdline
-                        is_workshot = (
-                            (cwd and str(script_dir) in str(cwd)) or
-                            any(str(script_dir) in str(arg) for arg in cmdline)
-                        )
-                        
-                        if is_workshot:
-                            print(f"[*] Stopping previous instance (PID: {proc.info['pid']})...")
-                            try:
-                                process = psutil.Process(proc.info['pid'])
-                                process.terminate()  # Try graceful termination first
-                                process.wait(timeout=3)  # Wait up to 3 seconds
-                            except psutil.TimeoutExpired:
-                                process.kill()  # Force kill if graceful fails
-                            stopped_count += 1
-            except (psutil.NoSuchProcess, psutil.AccessDenied):
-                continue
-    except Exception as e:
-        # If checking fails, just continue - better to allow startup than block it
-        print(f"[!] Warning: Could not check for previous instances: {e}")
-    
-    if stopped_count > 0:
-        print(f"[+] Stopped {stopped_count} previous instance(s)")
-        time.sleep(1)  # Brief pause to ensure clean shutdown
+    LOCK_FILE.parent.mkdir(exist_ok=True)
+    LOCK_FILE.write_text(str(os.getpid()))
 
+def record_daily_note(status, message):
+    """
+    Records a task status to a monthly dailies markdown file. 
+    Ensures only one entry per task per day (Idempotent).
+    """
+    os.makedirs("logs", exist_ok=True)
+    
+    now = datetime.now()
+    
+    # Format the Month for the filename (e.g., "2026_05")
+    month_str = now.strftime("%Y_%m")
+    log_path = f"logs/dailies_{month_str}.md"
+    
+    # Format the Day for the Header
+    today_str = now.strftime("%Y-%m-%d")
+    header = f"# {today_str}"
+    
+    # Format the entry with a markdown bullet for clean rendering
+    entry = f"- [{status}] {message}"
+    
+    lines = []
+    # added encoding="utf-8" to prevent Windows character mapping errors
+    if os.path.exists(log_path):
+        with open(log_path, "r", encoding="utf-8") as f:
+            lines = f.readlines()
+
+    # Find the section for today
+    today_index = -1
+    for i, line in enumerate(lines):
+        if line.strip() == header:
+            today_index = i
+            break
+
+    if today_index == -1:
+        with open(log_path, "a", encoding="utf-8") as f:
+            f.write(f"\n{header}\n{entry}\n")
+    else:
+        # Check if this task is already in today's section.
+        task_found_at = -1
+        end_of_section = len(lines)
+        
+        for i in range(today_index + 1, len(lines)):
+            if lines[i].startswith("#"):
+                end_of_section = i
+                break
+            if message in lines[i]:
+                task_found_at = i
+                break
+        
+        if task_found_at != -1:
+            lines[task_found_at] = f"{entry}\n"
+        else:
+            lines.insert(today_index + 1, f"{entry}\n")
+
+        with open(log_path, "w", encoding="utf-8") as f:
+            f.writelines(lines)
+
+    print(f"[DAILIES] Logged {status} to {log_path}")
 
 def signal_handler(signum, frame):
-    """Handle shutdown signals gracefully."""
+    """Graceful shutdown sequence."""
+    global APP_START_TIME
     print("\n[*] Shutting down WorkShot...")
+    
     monitor = get_monitor()
     monitor.stop()
     
     # Auto-export today's data if running > 5 hours
-    if app_start_time:
-        runtime_seconds = (datetime.now() - app_start_time).total_seconds()
+    if APP_START_TIME:
+        runtime_seconds = (datetime.now() - APP_START_TIME).total_seconds()
         if runtime_seconds > 18000:  # 5 hours = 18000 seconds
             try:
                 print("[*] Auto-exporting today's data...")
@@ -98,45 +134,41 @@ def signal_handler(signum, frame):
                 filepath = export_html(start_date=today, end_date=today)
                 print(f"[+] Report saved: {filepath}")
                 
-                # Upload to Google Drive
                 try:
                     print("[*] Uploading to Google Drive...")
                     upload_file(str(filepath))
-                except Exception as upload_error:
-                    print(f"[!] Google Drive upload failed: {upload_error}")
-                    print("[*] Report was still saved locally")
+                except Exception as e:
+                    print(f"[!] Upload failed: {e}")
             except Exception as e:
                 print(f"[!] Auto-export failed: {e}")
     
-    # Give server thread a brief moment to clean up
-    time.sleep(0.3)
+    if LOCK_FILE.exists():
+        LOCK_FILE.unlink()
+    
     sys.exit(0)
 
 
-def start_dashboard_server(host: str = "127.0.0.1", port: int = 8787):
-    """Start the FastAPI dashboard server in a thread."""
+def start_dashboard_server(host: str, port: int):
+    """Runs the FastAPI app via Uvicorn."""
     import uvicorn
     from dashboard.app import app
     
-    # Set exception handler for this thread's event loop
     if sys.platform == "win32":
         try:
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
             loop.set_exception_handler(suppress_asyncio_errors)
-        except Exception:
-            pass
+        except Exception: pass
     
-    config = uvicorn.Config(
-        app,
-        host=host,
-        port=port,
-        log_level="warning",  # Reduce noise
-        access_log=False
-    )
-    server = uvicorn.Server(config)
-    server.run()
+    config = uvicorn.Config(app, host=host, port=port, log_level="warning", access_log=False)
+    uvicorn.Server(config).run()
 
+def suppress_asyncio_errors(loop, context):
+    """Mute harmless shutdown noise."""
+    exception = context.get("exception")
+    if isinstance(exception, (ConnectionResetError, ConnectionAbortedError)):
+        return
+    loop.default_exception_handler(context)
 
 def print_banner():
     """Print startup banner."""
@@ -149,96 +181,48 @@ def print_banner():
     """
     print(banner)
 
-
-def suppress_asyncio_errors(loop, context):
-    """Suppress specific asyncio errors during shutdown."""
-    exception = context.get("exception")
-    if exception:
-        # Suppress ConnectionResetError during shutdown (harmless)
-        if isinstance(exception, (ConnectionResetError, ConnectionAbortedError)):
-            return
-    # For other exceptions, use default handler
-    loop.default_exception_handler(context)
-
-
 def main():
-    """Main entry point."""
-    global app_start_time
-    
-    # Suppress annoying asyncio warnings on Windows during shutdown
+    global APP_START_TIME
     warnings.filterwarnings("ignore", category=RuntimeWarning, module="asyncio")
     
-    # Suppress specific connection errors during shutdown
     if sys.platform == "win32":
-        # Set asyncio event loop policy for Windows
         asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
-        # Set custom exception handler to suppress connection errors
-        try:
-            # Create and set a new event loop for the main thread
-            loop = asyncio.new_event_loop()
-            asyncio.set_event_loop(loop)
-            loop.set_exception_handler(suppress_asyncio_errors)
-        except Exception:
-            pass  # If setting up event loop fails, continue anyway
-    
+
+    # Show Workshot banner
     print_banner()
+
+    manage_single_instance()
+    APP_START_TIME = datetime.now()
     
-    # Check for and stop any previous instances
-    check_and_stop_previous_instances()
-    
-    # Track app start time for auto-export
-    app_start_time = datetime.now()
-    
-    # Parse args
+    # Config
     open_browser = "--no-browser" not in sys.argv
-    host = "127.0.0.1"
-    port = 8787
+    host, port = "127.0.0.1", 8787
     
-    # Register signal handlers
     signal.signal(signal.SIGINT, signal_handler)
     signal.signal(signal.SIGTERM, signal_handler)
     
-    # Initialize database
-    print("[+] Initializing database...")
     init_db()
     
-    # Start activity monitor
-    print("[+] Starting activity monitor...")
+    # Start Monitor
     monitor = get_monitor()
     monitor.start()
     
-    # Start dashboard server in background thread
-    print(f"[+] Starting dashboard server at http://{host}:{port}")
-    server_thread = threading.Thread(
-        target=start_dashboard_server,
-        args=(host, port),
-        daemon=True
-    )
-    server_thread.start()
+    # Start Dashboard
+    threading.Thread(target=start_dashboard_server, args=(host, port), daemon=True).start()
     
-    # Wait a moment for server to start
     time.sleep(1.5)
-    
-    # Open browser
     if open_browser:
-        print("[+] Opening dashboard in browser...")
         webbrowser.open(f"http://{host}:{port}")
     
-    print("\n[+] WorkShot is running!")
-    print("   Dashboard: http://127.0.0.1:8787")
-    print("   Press Ctrl+C to stop\n")
+    print(f"\n[+] WorkShot Running\n    Dashboard: http://{host}:{port}\n    Dailies: {DAILIES_FILE}\n")
     
-    # Keep main thread alive
     try:
-        while True:
-            time.sleep(1)
+        while True: time.sleep(1)
     except KeyboardInterrupt:
         signal_handler(None, None)
 
-
 if __name__ == "__main__":
     main()
-
 
 
 

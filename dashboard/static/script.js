@@ -659,6 +659,365 @@ function exportWithDates(format) {
         });
 }
 
+async function updateTaskStatus(labelId, newStatus) {
+    const response = await fetch(`/api/session-labels/${labelId}/status`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: newStatus })
+    });
+
+    if (response.ok) {
+        const data = await response.json();
+        
+        if (newStatus === 'done') {
+            await loadLabels();
+            document.getElementById('active-label-chip').innerHTML = "General";
+            document.querySelectorAll('.label-chip').forEach(el => el.classList.remove('active'));
+        }
+    } else {
+        alert("Failed to update status.");
+    }
+}
+
+function toggleSearchBar() {
+    const searchInput = document.getElementById('task-search-input');
+    if (searchInput.style.display === 'none') {
+        searchInput.style.display = 'block';
+        searchInput.focus();
+    } else {
+        searchInput.style.display = 'none';
+        searchInput.value = "";
+        executeSearch("");
+    }
+}
+
+function executeSearch(query) {
+    currentSearchQuery = query.toLowerCase();
+    loadLabels();
+}
+
+function toggleDoneFilter() {
+    hideDoneTasks = !hideDoneTasks;
+    
+    const filterBtn = document.getElementById('filter-done-btn');
+    if (hideDoneTasks) {
+        filterBtn.style.color = '#5b8def';
+        filterBtn.title = "Show Done Tasks";
+    } else {
+        filterBtn.style.color = '#888';
+        filterBtn.title = "Hide Done Tasks";
+    }
+    
+    loadLabels();
+}
+
+let currentActiveLabelId = 0;
+let currentSearchQuery = "";
+let hideDoneTasks = false;
+
+async function loadLabels() {
+    const response = await fetch('/api/session-labels');
+    const labels = await response.json();
+    const container = document.getElementById('label-container');
+    
+    container.innerHTML = '';
+
+    const taskContainerStyle = 'padding: 8px 12px; border-radius: 6px; cursor: pointer; margin-bottom: 6px; transition: all 0.2s;';
+
+    const modalActiveLabelRow = document.getElementById('modal-active-label-row');
+    if (modalActiveLabelRow) {
+        modalActiveLabelRow.style.borderColor = labels.find(label => label.id === currentActiveLabelId)?.color;
+    }
+
+    const activeLabelChip = document.getElementById('active-label-chip');
+    if (activeLabelChip) {
+        activeLabelChip.style.borderColor = labels.find(label => label.id === currentActiveLabelId)?.color;
+        activeLabelChip.style.color = labels.find(label => label.id === currentActiveLabelId)?.color;
+    }
+
+    const activeLabelObj = labels.find(label => label.id === currentActiveLabelId);
+
+    const modalActiveLabelName = document.getElementById('modal-active-label-name');
+    if (modalActiveLabelName) {
+        modalActiveLabelName.innerHTML = currentActiveLabelId === 0 || !activeLabelObj 
+            ? "General" 
+            : activeLabelObj.name;
+    }
+
+    const modalActiveLabelStatus = document.getElementById('modal-active-label-status');
+    if (modalActiveLabelStatus) {
+        if (currentActiveLabelId === 0 || !activeLabelObj) {
+            // General Task Infinity Icon
+            modalActiveLabelStatus.innerHTML = `<label style="margin: 6px; color: #e0e0e0; display: flex; align-items: center;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 14 14"><path fill="currentColor" fill-rule="evenodd" d="M3.564 4.884a1.91 1.91 0 0 0-1.523.542a1.9 1.9 0 0 0-.442.691a2.5 2.5 0 0 0-.08.511c-.02.255-.02.49 0 .744c.02.241.052.434.08.51A1.87 1.87 0 0 0 2.74 9.015c.263.094.545.129.824.102l.07-.003c.373 0 .78-.2 1.271-.68c.392-.384.77-.879 1.172-1.433c-.401-.554-.78-1.049-1.172-1.432c-.491-.482-.898-.681-1.27-.681zM7 8.277a11 11 0 0 1-1.045 1.227c-.598.585-1.352 1.096-2.284 1.109a3.41 3.41 0 0 1-2.687-.974a3.4 3.4 0 0 1-.796-1.246c-.104-.287-.144-.664-.163-.9A6 6 0 0 1 0 7q.001-.247.024-.493c.02-.236.06-.613.163-.9a3.37 3.37 0 0 1 2.048-2.034c.46-.164.95-.227 1.435-.186c.932.013 1.686.524 2.284 1.109c.368.36.716.789 1.045 1.227a11 11 0 0 1 1.045-1.227c.598-.585 1.352-1.096 2.284-1.109a3.41 3.41 0 0 1 2.687.974c.354.352.626.777.796 1.246c.104.287.144.664.163.9q.022.246.025.493q-.002.247-.025.493c-.02.236-.06.613-.163.9a3.37 3.37 0 0 1-2.048 2.034c-.46.164-.95.227-1.435.186c-.932-.013-1.686-.524-2.284-1.109a11 11 0 0 1-1.045-1.227m5.48-.905c-.02.241-.051.434-.079.51a1.87 1.87 0 0 1-1.141 1.132a1.9 1.9 0 0 1-.824.102l-.07-.003c-.373 0-.78-.2-1.271-.68c-.392-.384-.77-.879-1.172-1.433c.401-.554.78-1.049 1.172-1.432c.491-.482.898-.681 1.27-.681l.071-.003a1.91 1.91 0 0 1 1.523.542c.197.196.348.432.442.691c.028.077.06.27.08.511c.02.255.02.49 0 .744" clip-rule="evenodd"/></svg>
+            </label>`;
+        } else {
+            // Status Toggle Button
+            modalActiveLabelStatus.innerHTML = `<button id="current-status-toggle-btn" class="status-toggle-btn active status-${activeLabelObj.status}" 
+                onclick="event.stopPropagation(); cycleTaskStatus(${activeLabelObj.id}, '${activeLabelObj.status}')" 
+                title="Current Status: ${activeLabelObj.status}">
+                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 1024 1024">
+                    <path fill="currentColor" d="M512 0C229.232 0 0 229.232 0 512c0 282.784 229.232 512 512 512c282.784 0 512-229.216 512-512C1024 229.232 794.784 0 512 0m0 961.008c-247.024 0-448-201.984-448-449.01c0-247.024 200.976-448 448-448s448 200.977 448 448s-200.976 449.01-448 449.01m204.336-636.352L415.935 626.944l-135.28-135.28c-12.496-12.496-32.752-12.496-45.264 0c-12.496 12.496-12.496 32.752 0 45.248l158.384 158.4c12.496 12.48 32.752 12.48 45.264 0c1.44-1.44 2.673-3.009 3.793-4.64l318.784-320.753c12.48-12.496 12.48-32.752 0-45.263c-12.512-12.496-32.768-12.496-45.28 0"/>
+                </svg>
+            </button>`;
+        }
+    }
+
+    const modalActiveLabelDate = document.getElementById('modal-active-label-date');
+    if (modalActiveLabelDate) {
+        if (activeLabelObj) {
+        modalActiveLabelDate.innerHTML = `<button onclick="event.stopPropagation(); openEditModal(${activeLabelObj.id}, '${activeLabelObj.name}', '${activeLabelObj.color}')" 
+                    style="background: transparent; border: none; color: inherit;  cursor: pointer;" title="Edit Task">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="1.5"/><path fill="currentColor" d="m7 14.94l6.06-6.06l2.06 2.06L9.06 17H7zM16.7 9.35l-1 1l-2.05-2.05l1-1c.21-.22.56-.22.77 0l1.28 1.28c.22.21.22.56 0 .77"/></svg>
+                </button>
+                
+                <button onclick="event.stopPropagation(); deleteTask(${activeLabelObj.id})" 
+                    style="background: transparent; border: none; color: inherit; cursor: pointer;" title="Delete Task">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.172 14.828L12.001 12m2.828-2.828L12.001 12m0 0L9.172 9.172M12.001 12l2.828 2.828M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2S2 6.477 2 12s4.477 10 10 10"/></svg>
+                </button>`;
+
+        // FUTURE REFERENCE: when want to show the date of the task, we can use this.
+        // if (currentActiveLabelId === 0 || !activeLabelObj || !activeLabelObj.created_at) {
+        //     modalActiveLabelDate.innerHTML = "-";
+        // } else {
+        //     // Format the date properly for the header
+        //     const d = new Date(activeLabelObj.created_at + 'Z'); 
+        //     modalActiveLabelDate.innerHTML = d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+        // }
+        }
+    }
+
+
+    // Render 'General' ONLY if it is NOT currently active
+    if (currentActiveLabelId !== 0) {
+        container.innerHTML += `
+            <div class="task-row hoverable-row" 
+                onclick="switchLabel(0, 'General', 'todo', '-')"
+                style="display: flex; align-items: center; justify-content: space-between; background: #1a1a1f; border-left: 4px solid transparent; ${taskContainerStyle}">
+                
+                <label style="margin: 6px; color: #888; display: flex; align-items: center;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 14 14"><path fill="currentColor" fill-rule="evenodd" d="M3.564 4.884a1.91 1.91 0 0 0-1.523.542a1.9 1.9 0 0 0-.442.691a2.5 2.5 0 0 0-.08.511c-.02.255-.02.49 0 .744c.02.241.052.434.08.51A1.87 1.87 0 0 0 2.74 9.015c.263.094.545.129.824.102l.07-.003c.373 0 .78-.2 1.271-.68c.392-.384.77-.879 1.172-1.433c-.401-.554-.78-1.049-1.172-1.432c-.491-.482-.898-.681-1.27-.681zM7 8.277a11 11 0 0 1-1.045 1.227c-.598.585-1.352 1.096-2.284 1.109a3.41 3.41 0 0 1-2.687-.974a3.4 3.4 0 0 1-.796-1.246c-.104-.287-.144-.664-.163-.9A6 6 0 0 1 0 7q.001-.247.024-.493c.02-.236.06-.613.163-.9a3.37 3.37 0 0 1 2.048-2.034c.46-.164.95-.227 1.435-.186c.932.013 1.686.524 2.284 1.109c.368.36.716.789 1.045 1.227a11 11 0 0 1 1.045-1.227c.598-.585 1.352-1.096 2.284-1.109a3.41 3.41 0 0 1 2.687.974c.354.352.626.777.796 1.246c.104.287.144.664.163.9q.022.246.025.493q-.002.247-.025.493c-.02.236-.06.613-.163.9a3.37 3.37 0 0 1-2.048 2.034c-.46.164-.95.227-1.435.186c-.932-.013-1.686-.524-2.284-1.109a11 11 0 0 1-1.045-1.227m5.48-.905c-.02.241-.051.434-.079.51a1.87 1.87 0 0 1-1.141 1.132a1.9 1.9 0 0 1-.824.102l-.07-.003c-.373 0-.78-.2-1.271-.68c-.392-.384-.77-.879-1.172-1.433c.401-.554.78-1.049 1.172-1.432c.491-.482.898-.681 1.27-.681l.071-.003a1.91 1.91 0 0 1 1.523.542c.197.196.348.432.442.691c.028.077.06.27.08.511c.02.255.02.49 0 .744" clip-rule="evenodd"/></svg>
+                </label>
+                <span id="row-name-0" style="flex-grow: 1; margin-left: 12px; font-size: 14px; color: #888; font-weight: normal;">
+                    General
+                </span>
+                <label style="font-style: italic; font-size: 0.75rem; color: #888; margin-left: 10px; pointer-events: none;">-</label>
+            </div>`;
+    }
+
+    //Render fetched labels
+    labels.forEach(label => {
+        if (label.id === currentActiveLabelId) {
+            return; 
+        }
+
+        if (currentSearchQuery && !label.name.toLowerCase().includes(currentSearchQuery)) {
+            return;
+        }
+        
+        if (hideDoneTasks && label.status === 'done') {
+            return;
+        }
+
+        // Format date
+        let dateStr = "";
+        if (label.created_at) {
+            const d = new Date(label.created_at + 'Z'); 
+            dateStr = d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+        }
+
+        container.innerHTML += `
+        <div class="task-row hoverable-row" 
+            onclick="switchLabel(${label.id}, '${label.name}', '${label.status}', '${dateStr}')"
+            onmouseover="this.style.borderColor = '${label.color}'; this.style.backgroundColor = 'var(--bg-hover)';"
+            onmouseout="this.style.borderColor = 'transparent'; this.style.backgroundColor = '#1a1a1f';"
+            style="display: flex; align-items: center; justify-content: space-between; background: #1a1a1f; border-left: 4px solid transparent; ${taskContainerStyle}">
+            
+            <div style="display: flex; align-items: center; gap: 12px; flex-grow: 1;">
+                <button class="status-toggle-btn status-${label.status}" 
+                    onclick="event.stopPropagation(); cycleTaskStatus(${label.id}, '${label.status}')" 
+                    title="Current Status: ${label.status}">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 1024 1024"><path fill="currentColor" d="M512 0C229.232 0 0 229.232 0 512c0 282.784 229.232 512 512 512c282.784 0 512-229.216 512-512C1024 229.232 794.784 0 512 0m0 961.008c-247.024 0-448-201.984-448-449.01c0-247.024 200.976-448 448-448s448 200.977 448 448s-200.976 449.01-448 449.01m204.336-636.352L415.935 626.944l-135.28-135.28c-12.496-12.496-32.752-12.496-45.264 0c-12.496 12.496-12.496 32.752 0 45.248l158.384 158.4c12.496 12.48 32.752 12.48 45.264 0c1.44-1.44 2.673-3.009 3.793-4.64l318.784-320.753c12.48-12.496 12.48-32.752 0-45.263c-12.512-12.496-32.768-12.496-45.28 0"/></svg>
+                </button>
+
+                <span id="row-name-${label.id}" style="flex-grow: 1; font-weight: normal; color: #888; font-size: 14px;">
+                    ${label.name}
+                </span>
+                
+                <div style="font-style: italic; font-size: 0.75rem; color: #444444; display: flex; align-items: end; gap: 0.3rem;">
+                    
+                <button onclick="event.stopPropagation(); openEditModal(${label.id}, '${label.name}', '${label.color}')" 
+                    style="background: transparent; border: none; color: inherit;  cursor: pointer;" title="Edit Task">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="1.5"/><path fill="currentColor" d="m7 14.94l6.06-6.06l2.06 2.06L9.06 17H7zM16.7 9.35l-1 1l-2.05-2.05l1-1c.21-.22.56-.22.77 0l1.28 1.28c.22.21.22.56 0 .77"/></svg>
+                </button>
+                
+                <button onclick="event.stopPropagation(); deleteTask(${label.id})" 
+                    style="background: transparent; border: none; color: inherit; cursor: pointer;" title="Delete Task">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.172 14.828L12.001 12m2.828-2.828L12.001 12m0 0L9.172 9.172M12.001 12l2.828 2.828M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2S2 6.477 2 12s4.477 10 10 10"/></svg>
+                </button>
+                </div>
+            </div>
+
+        
+        </div>
+        `;
+    });
+}
+
+async function cycleTaskStatus(labelId, currentStatus) {
+    let nextStatus = 'todo';
+    if (currentStatus === 'todo') nextStatus = 'partial';
+    else if (currentStatus === 'partial') nextStatus = 'done';
+    else if (currentStatus === 'done') nextStatus = 'todo';
+
+    const response = await fetch(`/api/session-labels/${labelId}/status`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: nextStatus })
+    });
+
+    if (response.ok) {
+        await loadLabels();
+        
+        if (nextStatus === 'done') {
+            const activeHeaderChip = document.getElementById('active-label-chip');
+            if (activeHeaderChip && activeHeaderChip.innerHTML.includes(labelId)) {
+                activeHeaderChip.innerHTML = "General";
+                document.querySelectorAll('.label-chip').forEach(el => el.classList.remove('active'));
+            }
+        }
+    } else {
+        const errorData = await response.json();
+        console.error("Backend Crash Details:", errorData);
+        alert(`Server Crash: ${errorData.detail}`);
+    }
+}
+
+async function switchLabel(labelId, labelName, labelStatus, labelDate) {
+    const response = await fetch(`/api/monitor/set-session-label/${labelId}`, { method: 'POST' });
+    if (response.ok) {
+        const label = await response.json();
+
+        currentActiveLabelId = labelId; 
+        await loadLabels();
+        
+        const activeHeaderChip = document.getElementById('active-label-chip');
+        if (activeHeaderChip) {
+            activeHeaderChip.innerHTML = labelName;
+        }
+
+        const modalActiveLabelName = document.getElementById('modal-active-label-name');
+        if (modalActiveLabelName) {
+            modalActiveLabelName.innerHTML = labelName;
+        }
+
+        const modalActiveLabelStatus = document.getElementById('modal-active-label-status');
+        if (modalActiveLabelStatus) {
+            if (labelName === "General") {
+                modalActiveLabelStatus.innerHTML = `<label style="margin: 6px; color: #e0e0e0; display: flex; align-items: center;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 14 14"><path fill="currentColor" fill-rule="evenodd" d="M3.564 4.884a1.91 1.91 0 0 0-1.523.542a1.9 1.9 0 0 0-.442.691a2.5 2.5 0 0 0-.08.511c-.02.255-.02.49 0 .744c.02.241.052.434.08.51A1.87 1.87 0 0 0 2.74 9.015c.263.094.545.129.824.102l.07-.003c.373 0 .78-.2 1.271-.68c.392-.384.77-.879 1.172-1.433c-.401-.554-.78-1.049-1.172-1.432c-.491-.482-.898-.681-1.27-.681zM7 8.277a11 11 0 0 1-1.045 1.227c-.598.585-1.352 1.096-2.284 1.109a3.41 3.41 0 0 1-2.687-.974a3.4 3.4 0 0 1-.796-1.246c-.104-.287-.144-.664-.163-.9A6 6 0 0 1 0 7q.001-.247.024-.493c.02-.236.06-.613.163-.9a3.37 3.37 0 0 1 2.048-2.034c.46-.164.95-.227 1.435-.186c.932.013 1.686.524 2.284 1.109c.368.36.716.789 1.045 1.227a11 11 0 0 1 1.045-1.227c.598-.585 1.352-1.096 2.284-1.109a3.41 3.41 0 0 1 2.687.974c.354.352.626.777.796 1.246c.104.287.144.664.163.9q.022.246.025.493q-.002.247-.025.493c-.02.236-.06.613-.163.9a3.37 3.37 0 0 1-2.048 2.034c-.46.164-.95.227-1.435.186c-.932-.013-1.686-.524-2.284-1.109a11 11 0 0 1-1.045-1.227m5.48-.905c-.02.241-.051.434-.079.51a1.87 1.87 0 0 1-1.141 1.132a1.9 1.9 0 0 1-.824.102l-.07-.003c-.373 0-.78-.2-1.271-.68c-.392-.384-.77-.879-1.172-1.433c.401-.554.78-1.049 1.172-1.432c.491-.482.898-.681 1.27-.681l.071-.003a1.91 1.91 0 0 1 1.523.542c.197.196.348.432.442.691c.028.077.06.27.08.511c.02.255.02.49 0 .744" clip-rule="evenodd"/></svg>
+                </label>`;
+            } else {
+                modalActiveLabelStatus.innerHTML = `<button id="current-status-toggle-btn" class="status-toggle-btn active status-${labelStatus}" 
+                    onclick="event.stopPropagation(); cycleTaskStatus(${labelId}, '${labelStatus}')" 
+                    title="Current Status: ${labelStatus}">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 1024 1024">
+                        <path fill="currentColor" d="M512 0C229.232 0 0 229.232 0 512c0 282.784 229.232 512 512 512c282.784 0 512-229.216 512-512C1024 229.232 794.784 0 512 0m0 961.008c-247.024 0-448-201.984-448-449.01c0-247.024 200.976-448 448-448s448 200.977 448 448s-200.976 449.01-448 449.01m204.336-636.352L415.935 626.944l-135.28-135.28c-12.496-12.496-32.752-12.496-45.264 0c-12.496 12.496-12.496 32.752 0 45.248l158.384 158.4c12.496 12.48 32.752 12.48 45.264 0c1.44-1.44 2.673-3.009 3.793-4.64l318.784-320.753c12.48-12.496 12.48-32.752 0-45.263c-12.512-12.496-32.768-12.496-45.28 0"/>
+                    </svg>
+                </button>`;
+            }
+        }
+        closeNewLabelModal();
+    }
+}
+
+function openEditModal(id, name, color) {
+    document.getElementById('edit-label-id').value = id;
+    document.getElementById('edit-label-name').value = name;
+    document.getElementById('edit-label-color').value = color;
+    document.getElementById('edit-modal').style.display = 'flex';
+}
+
+async function submitEditLabel() {
+    const id = document.getElementById('edit-label-id').value;
+    const name = document.getElementById('edit-label-name').value;
+    const color = document.getElementById('edit-label-color').value;
+
+    if (!name) return alert("Task name cannot be empty.");
+
+    const response = await fetch(`/api/session-labels/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, color })
+    });
+
+    if (response.ok) {
+        document.getElementById('edit-modal').style.display = 'none';
+        await loadLabels();
+        
+        if (parseInt(id) === currentActiveLabelId) {
+            document.getElementById('active-label-chip').innerHTML = name;
+        }
+    } else {
+        alert("Error updating task.");
+    }
+}
+
+async function deleteTask(labelId) {
+    if (!confirm("Are you sure you want to delete this task? This cannot be undone.")) return;
+
+    const response = await fetch(`/api/session-labels/${labelId}`, { method: 'DELETE' });
+
+    if (response.ok) {
+        if (labelId === currentActiveLabelId) {
+            currentActiveLabelId = 0;
+            document.getElementById('active-label-chip').innerHTML = "General";
+            
+            const modalActiveLabelName = document.getElementById('modal-active-label-name');
+            if (modalActiveLabelName) modalActiveLabelName.innerHTML = "General";
+        }
+        
+        await loadLabels();
+    } else {
+        alert("Error deleting task.");
+    }
+}
+
+function showNewLabelModal() {
+    document.getElementById('label-modal').style.display = 'flex';
+    document.getElementById('new-label-name').focus();
+}
+
+function closeNewLabelModal() {
+    document.getElementById('label-modal').style.display = 'none';
+    document.getElementById('new-label-name').value = '';
+}
+
+async function submitNewLabel() {
+    const name = document.getElementById('new-label-name').value;
+    const color = document.getElementById('new-label-color').value;
+
+    if (!name) return alert("Please enter a label name");
+
+    const response = await fetch('/api/session-labels', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, color })
+    });
+
+    if (response.ok) {
+        const responseData = await response.json();
+        
+        closeNewLabelModal();
+
+        await loadLabels(); 
+
+        await switchLabel(responseData.id, name, 'todo', 'Just now');
+    } else {
+        alert("Error creating label. Name might be a duplicate.");
+    }
+}
+
 // Close modal on Escape key
 document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
@@ -667,6 +1026,10 @@ document.addEventListener('keydown', (e) => {
 });
 
 // Start when DOM is ready
-document.addEventListener('DOMContentLoaded', init);
+document.addEventListener("DOMContentLoaded", async () => {
+    init();
+    
+    await loadLabels();
 
-
+    showNewLabelModal();
+});

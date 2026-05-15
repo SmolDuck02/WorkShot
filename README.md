@@ -73,6 +73,24 @@ Unlike basic time trackers, WorkShot provides:
 - **No conflicts** - Port and database locking handled automatically
 - **Global command** - Run `workshot` from anywhere in your terminal
 
+### 📝 Dev-Focused Dailies Log
+- **Narrative Journaling** - Maintain a manual "Dailies" log alongside your automated tracking.
+- **Markdown-Based** - Logs are saved in a clean, portable `.md` format.
+- **Contextual Awareness** - Automatically organizes entries by date with status tags (`//done`, `//todo`).
+- **Audit Trail** - Perfect for stand-ups, billing, or personal progress tracking.
+
+### 🔄 Professional Instance Management
+- **PID-Locking Mechanism** - Uses industry-standard lockfiles (`workshot.pid`) to ensure only one monitor is active.
+- **Auto-Cleanup** - Automatically terminates orphaned processes and releases database locks.
+- **Graceful Shutdown** - Handled via `SIGINT`/`SIGTERM` to ensure every second of data is flushed to disk.
+
+## What We Track
+✅ **Active window title & App name**
+✅ **Monitor ID** (Tracks focus on multi-monitor setups)
+✅ **Session duration & Idle periods**
+✅ **Manual Dailies** (Narrative notes stored in plain text)
+✅ **Process ID** (Temporary `.pid` file to manage application state)
+
 ---
 
 ## 🚀 Quick Start
@@ -86,7 +104,7 @@ Unlike basic time trackers, WorkShot provides:
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/workshot.git
+git clone https://github.com/smolduck02/workshot.git
 cd workshot/WorkShot
 
 # Install dependencies
@@ -130,13 +148,25 @@ For easy access from anywhere, set up the global `workshot` command:
    ```
 
 **Benefits:**
-- ✅ Run from any directory
-- ✅ Automatically stops previous instances
-- ✅ Clean Ctrl+C shutdown
-- ✅ No port conflicts or database locks
+- ✅ **Zero Conflicts**: The PID-lock prevents multiple instances from corrupting the SQLite database.
+- ✅ **Headless Mode**: Run with `--no-browser` for a silent background service.
+- ✅ **Robust Shutdown**: Standardized signal handling (Ctrl+C shutdown) ensures data integrity.
 
 The dashboard will automatically open in your default browser at:
 **http://127.0.0.1:8787**
+
+## 📝 Daily Journaling (Dailies)
+
+WorkShot supports a manual "Dailies" log for narrative tracking. This is stored in `logs/dailies.md`.
+
+### Format
+The log follows a clean, developer-friendly syntax:
+- `//done`: For completed tasks.
+- `//todo`: For upcoming work.
+- `//partial`: For in-progress items.
+
+### Automating Entries
+You can use the internal `record_daily_note(status, content)` function to programmatically append to your journal from other scripts or via the Dashboard API.
 
 ### Command-Line Options
 
@@ -170,6 +200,8 @@ Simply press **Ctrl+C** in the terminal to stop tracking and shut down gracefull
 
 ```
 WorkShot/
+├── logs/                     # Narrative logs
+│   └── dailies.md            # Your manual daily progress log
 ├── tracker/                  # Core monitoring engine
 │   ├── __init__.py
 │   ├── monitor.py           # Windows API activity tracking
@@ -388,9 +420,9 @@ This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) 
 
 ## 💬 Support
 
-- 🐛 **Bug reports**: [Open an issue](https://github.com/yourusername/workshot/issues)
-- 💡 **Feature requests**: [Start a discussion](https://github.com/yourusername/workshot/discussions)
-- 📧 **Contact**: your.email@example.com
+- 🐛 **Bug reports**: [Open an issue](https://github.com/smolduck02/workshot/issues)
+- 💡 **Feature requests**: [Start a discussion](https://github.com/smolduck02/workshot/discussions)
+- 📧 **Contact**: ursonalj@gmail.com
 
 ---
 
@@ -398,6 +430,6 @@ This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) 
 
 **⚡ Built with passion for productivity ⚡**
 
-[⭐ Star this repo](https://github.com/yourusername/workshot) • [🍴 Fork it](https://github.com/yourusername/workshot/fork) • [📢 Share it](https://twitter.com/intent/tweet?text=Check%20out%20WorkShot%20-%20A%20beautiful%20activity%20tracker%20for%20Windows!&url=https://github.com/yourusername/workshot)
+[⭐ Star this repo](https://github.com/smolduck02/workshot) • [🍴 Fork it](https://github.com/smolduck02/workshot/fork) • [📢 Share it](https://twitter.com/intent/tweet?text=Check%20out%20WorkShot%20-%20A%20beautiful%20activity%20tracker%20for%20Windows!&url=https://github.com/smolduck02/workshot)
 
 </div>

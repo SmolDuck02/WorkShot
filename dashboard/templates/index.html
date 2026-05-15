@@ -80,11 +80,123 @@
             </div>
         </header>
 
+        <!-- Edit Task Modal -->
+        <div id="edit-modal" class="add-session-label-modal-overlay" style="display: none; z-index: 1005;">
+            <div class="modal-content">
+                <h3>Edit Task</h3>
+                <input type="hidden" id="edit-label-id"> 
+
+                <div class="form-group" style="margin: 20px 0; display: flex; flex-direction: column;">
+                    <div style="display: flex; justify-content: space-between;">
+                        <label>Task Name</label>
+                        <div style="display: flex; flex-direction: row; gap: 1rem; margin-bottom: 10px; align-items: center;">
+                            <label>Accent Color</label>
+                            <input type="color" id="edit-label-color" style="height: 15px;">
+                        </div>
+                    </div>
+
+                    <input type="text" id="edit-label-name">
+                </div>
+
+                <div class="modal-actions">
+                    <button class="btn-secondary" onclick="document.getElementById('edit-modal').style.display='none'">Cancel</button>
+                    <button class="btn-primary" onclick="submitEditLabel()">Save Changes</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Create Task Modal -->
+        <div id="new-label-modal" class="add-session-label-modal-overlay" style="display: none; z-index: 1005;">
+            <div class="modal-content">
+                <h3>Create New Task</h3>
+                <div class="form-group" style="margin: 20px 0; display: flex; flex-direction: column;">
+                    <div style="display: flex; justify-content: space-between;">
+                        <label>Task Name</label>
+                        <div style="display: flex; flex-direction: row; gap: 1rem; margin-bottom: 10px; align-items: center;">
+                            <label>Accent Color</label>
+                            <input type="color" id="new-label-color" value="#5b8def" style="height: 15px;">
+                        </div>
+                    </div>
+
+                    <input type="text" id="new-label-name" style="height: 50px; background: var(--bg-hover);" placeholder="e.g., Shufti Integration">
+                </div>
+                
+                <div class="modal-actions">
+                    <button class="btn-secondary" style="width: 100%;" onclick="document.getElementById('new-label-modal').style.display='none'">Cancel</button>
+                    <button class="btn-primary" style="width: 100%;" onclick="submitNewLabel()">Create Marker</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Session Label Modal -->
+        <div id="label-modal" class="add-session-label-modal-overlay">
+            <div class="modal-content" style="position: relative;">
+                <svg onclick="closeNewLabelModal()" style="cursor: pointer; position: absolute; top: 30px; right: 25px;" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6.758 17.243L12.001 12m5.243-5.243L12 12m0 0L6.758 6.757M12.001 12l5.243 5.243"/></svg>
+                <h3>Current Task</h3>
+                <br/>
+                <div id="modal-active-label-row" class="task-row hoverable-row" 
+                    style="display: flex; color: #fff; align-items: center; justify-content: space-between; border: 1px solid #5b8def; filter: drop-shadow(0 0 4px rgba(86, 149, 212, 0.4)); padding: 14px 10px; border-radius: 6px;  transition: all 0.2s;">
+                    
+                    <div id="modal-active-label-status">
+                        <label style="margin: 6px; color: #e0e0e0; display: flex; align-items: center;">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 14 14"><path fill="currentColor" fill-rule="evenodd" d="M3.564 4.884a1.91 1.91 0 0 0-1.523.542a1.9 1.9 0 0 0-.442.691a2.5 2.5 0 0 0-.08.511c-.02.255-.02.49 0 .744c.02.241.052.434.08.51A1.87 1.87 0 0 0 2.74 9.015c.263.094.545.129.824.102l.07-.003c.373 0 .78-.2 1.271-.68c.392-.384.77-.879 1.172-1.433c-.401-.554-.78-1.049-1.172-1.432c-.491-.482-.898-.681-1.27-.681zM7 8.277a11 11 0 0 1-1.045 1.227c-.598.585-1.352 1.096-2.284 1.109a3.41 3.41 0 0 1-2.687-.974a3.4 3.4 0 0 1-.796-1.246c-.104-.287-.144-.664-.163-.9A6 6 0 0 1 0 7q.001-.247.024-.493c.02-.236.06-.613.163-.9a3.37 3.37 0 0 1 2.048-2.034c.46-.164.95-.227 1.435-.186c.932.013 1.686.524 2.284 1.109c.368.36.716.789 1.045 1.227a11 11 0 0 1 1.045-1.227c.598-.585 1.352-1.096 2.284-1.109a3.41 3.41 0 0 1 2.687.974c.354.352.626.777.796 1.246c.104.287.144.664.163.9q.022.246.025.493q-.002.247-.025.493c-.02.236-.06.613-.163.9a3.37 3.37 0 0 1-2.048 2.034c-.46.164-.95.227-1.435.186c-.932-.013-1.686-.524-2.284-1.109a11 11 0 0 1-1.045-1.227m5.48-.905c-.02.241-.051.434-.079.51a1.87 1.87 0 0 1-1.141 1.132a1.9 1.9 0 0 1-.824.102l-.07-.003c-.373 0-.78-.2-1.271-.68c-.392-.384-.77-.879-1.172-1.433c.401-.554.78-1.049 1.172-1.432c.491-.482.898-.681 1.27-.681l.071-.003a1.91 1.91 0 0 1 1.523.542c.197.196.348.432.442.691c.028.077.06.27.08.511c.02.255.02.49 0 .744" clip-rule="evenodd"/></svg>
+                        </label>
+                    </div>
+
+                    <span id="modal-active-label-name" style="flex-grow: 1; margin-left: 12px; font-weight: bold; font-size: 14px;">
+                        General
+                    </span>
+                    
+                    <div id="modal-active-label-date" style="font-style: italic; font-size: 0.75rem; color: #444444; display: flex; align-items: end; gap: 0.3rem;">
+
+                    </div>
+                </div>
+                <br/>
+                <div style="display: flex; flex-direction: column; width: 100%;">
+                    <div style="display: flex; align-items: center; justify-content: space-between;">
+                        <label>All Tasks</label>
+                        <div style="display: flex; align-items: center; gap: 0.8rem;">
+                            
+                            <button onclick="toggleSearchBar()" style="background:transparent; border:none; color:#888; cursor:pointer; padding:0; display:flex;" title="Search Tasks">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24"><path fill="currentColor" d="M9.5 16q-2.725 0-4.612-1.888T3 9.5t1.888-4.612T9.5 3t4.613 1.888T16 9.5q0 1.1-.35 2.075T14.7 13.3l5.6 5.6q.275.275.275.7t-.275.7t-.7.275t-.7-.275l-5.6-5.6q-.75.6-1.725.95T9.5 16m0-2q1.875 0 3.188-1.312T14 9.5t-1.312-3.187T9.5 5T6.313 6.313T5 9.5t1.313 3.188T9.5 14"/></svg>
+                            </button>
+                            
+                            <button id="filter-done-btn" onclick="toggleDoneFilter()" style="background:transparent; border:none; color:#888; cursor:pointer; padding:0; display:flex;" title="Hide Done Tasks">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="m21.125 21.1l-5.9-5.9l-2.15 2.15q-.3.3-.7.3t-.7-.3l-4.25-4.25q-.3-.3-.287-.7t.287-.7q.3-.3.713-.312t.712.287l3.525 3.525l1.4-1.4l-9.65-9.65q-.3-.3-.288-.7t.288-.7q.3-.3.713-.312t.712.287L22.525 19.7q.275.275.275.7t-.275.7t-.7.275t-.7-.275m-15.1-3.75l-4.25-4.25q-.275-.275-.275-.7t.275-.7t.7-.275t.7.275l3.55 3.55l1.4 1.4l-.7.7q-.3.3-.7.3t-.7-.3m12-4.95l-1.4-1.4l4.225-4.225q.275-.275.675-.287t.7.262t.313.7t-.288.725zm-2.85-2.85l-1.4-1.4l1.45-1.45q.275-.275.7-.275t.7.275t.275.7t-.275.7z"/></svg>
+                            </button>
+                            
+                        </div>
+                    </div>
+                    
+                    <input type="text" id="task-search-input" placeholder="Search tasks..." 
+                           onkeyup="executeSearch(this.value)" 
+                           onblur="executeSearch(''); document.getElementById('task-search-input').value = ''; document.getElementById('task-search-input').style.display = 'none';"
+                           style="display: none; width: 100%; margin-top: 10px; background: var(--bg-hover); color: #e0e0e0; border: 1px solid #333; padding: 10px 10px; border-radius: 4px; box-sizing: border-box;">
+                </div>
+                <div id="label-container" class="flex-wrap" style="margin-top: 5px; max-height: 260px; overflow-y: auto;">
+                </div>
+
+                <div class="gradient-divider"></div>
+                <button class="btn-primary" style="width: 100%;" onclick="document.getElementById('new-label-modal').style.display='flex'">Create New Task</button>
+            </div>
+        </div>
+
         <!-- Live Status Card -->
         <div class="card live-status">
-            <div class="card-header">
-                <div class="status-dot-live"></div>
-                <h2 class="card-title">Live Activity</h2>
+            <div class="card-header" style="display:flex; justify-content: space-between;">
+                <div style="display:flex; align-items: center; gap: 0.625rem;">
+                    <div class="status-dot-live"></div>
+                    <h2 class="card-title">Live Activity</h2>
+                </div>
+                <div style="display:flex; align-items: center; gap: 1rem;">
+                    <h2 class="card-title">Active Task</h2>
+                    <div style="display:flex; align-items: center; gap: 0.25rem;">
+                        <button id="active-label-chip" class="label-chip active" style="font-size: 1.25rem;">General</button>
+                        <button class="add-session-label-btn" onclick="showNewLabelModal()" title="Switch Task">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="m10 19l-7-7l7-7zm4 0V5l7 7zm1.5-3.625L18.875 12L15.5 8.625z"/></svg>
+                        </button>
+                    </div>
+                </div>
             </div>
             <div class="current-app">
                 <div class="app-icon-large" id="current-app-icon"></div>
